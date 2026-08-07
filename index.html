@@ -565,13 +565,14 @@ const LOCATIONS = [
 /* ---- Adams salesmen. `loc` is the branch key above — picking a salesman
        sets that branch automatically. Edit this list to add or remove people. ---- */
 const SALESMEN = [
-  {name:"Rob Dicka",          loc:'elkhorn'},
+  {name:"Rob Dicka",          loc:'hazel'},
   {name:"Dan Schopp",         loc:'elkhorn'},
   {name:"Josh Macara",        loc:'elkhorn'},
   {name:"Joe Weigert",        loc:'elkhorn'},
-  {name:"Timothy Travis",     loc:'elkhorn'},
+  {name:"Timothy Travis",     loc:'morris'},
   {name:"Jeremy Zinn",        loc:'elkhorn'},
-  {name:"Adams Virtual Team", loc:'elkhorn'}
+  {name:"Sam",                loc:'greenbay'},   // also covers Wausau — switch the location dropdown for a Wausau job
+  {name:"Adams Virtual Team", loc:null}          // no home branch — rep picks the customer's market
 ];
 function locByKey(k){ return LOCATIONS.find(l=>l.key===k) || LOCATIONS[0]; }
 
@@ -1332,6 +1333,7 @@ $('jSalesman').addEventListener('change',e=>{
   const v = store.get()||{}; v.salesman = e.target.value; store.set(v);
   const p = SALESMEN.find(x=>x.name===e.target.value);
   if (p && p.loc) applyLocation(p.loc);
+  else setLocNote();   // no home branch (e.g. Adams Virtual Team) — leave the pick to the rep
 });
 
 function fillDefaultTempBands(){
