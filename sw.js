@@ -1,7 +1,7 @@
 /* Adams Sizer service worker.
    Network-first for the page itself so a new deploy lands on the FIRST refresh,
    cache-first for everything else so the tool still works with no signal. */
-const CACHE = 'adams-sizer-v5';
+const CACHE = 'adams-sizer-v6';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
