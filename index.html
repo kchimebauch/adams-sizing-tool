@@ -127,6 +127,26 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .cust-kw{font-size:19px;font-weight:700;color:#0f3260}
   #printSheet .cust-plain{font-size:11px;color:#333;line-height:1.42;margin-top:3px}
   #printSheet .cust-h{font-size:12px;font-weight:700;color:#0f3260;margin:9px 0 2px}
+  /* ---- consumer summary ---- */
+  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:12px 16px;margin-bottom:8px;break-inside:avoid}
+  #printSheet .c-eyebrow{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#c8102e;font-weight:800}
+  #printSheet .c-model{font-size:22px;font-weight:800;color:#0f3260;line-height:1.15;margin-top:3px}
+  #printSheet .c-why{font-size:11.5px;color:#222;margin-top:5px;line-height:1.5}
+  #printSheet .c-bar{height:9px;border-radius:5px;background:#e6eaf0;margin-top:8px;overflow:hidden}
+  #printSheet .c-bar i{display:block;height:100%;background:#0f3260;border-radius:5px}
+  #printSheet .c-barlbl{font-size:10.5px;color:#555;margin-top:4px}
+  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:9px 0 3px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
+  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.52;margin-top:1px}
+  #printSheet .c-grid div{break-inside:avoid}
+  #printSheet .c-tick{color:#0f3260;font-weight:800;margin-right:5px}
+  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:7px 12px;margin-top:5px;break-inside:avoid}
+  #printSheet .c-alt b{color:#0f3260}
+  #printSheet .c-body{font-size:11px;color:#333;line-height:1.5;margin-top:2px}
+  #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:8px 13px;margin-top:5px;break-inside:avoid}
+  #printSheet .c-step{font-size:11px;line-height:1.5;margin-bottom:4px}
+  #printSheet .c-stepn{display:inline-block;width:17px;height:17px;border-radius:9px;background:#c8102e;color:#fff;
+      font-size:10px;font-weight:800;text-align:center;line-height:17px;margin-right:7px}
+  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:9px;padding-top:7px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
   .mgdrow{align-items:center;gap:8px}
   .mgdrow .pill{font-size:9.5px;white-space:nowrap}
   .modebadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
@@ -977,92 +997,162 @@ function custFits(r){
   if (S.cust.brand !== 'all') m = m.filter(x=>x.brand===S.cust.brand);
   return m;
 }
-function custScenBlock(r){
-  const meta = SCEN_META[r.scenario];
-  const fits = custFits(r);
-  const best = fits.slice().sort((a,b)=>a.rated-b.rated)[0];
-  const fuelName = S.fuel==='NG' ? 'natural gas' : 'propane';
-  const plain = {
-    whole:     'Everything in the home is backed up, with nothing switched off or staggered while the generator runs.',
-    managed:   (S.mgmtMode==='shed'
-        ? `A load-management module holds the largest appliances off while the generator is busy. Day to day: ${custSpoken(r.largestManagedName||'the managed load')} runs whenever there is room, and may pause for a few minutes when another large appliance is running.`
-        : 'A load-management module staggers the largest appliances so they never start at the same instant. The generator is still sized to run any one of them at any time, so nothing has to be switched off to protect it.'),
-    essential: 'Only the circuits selected as essential — typically heat, refrigeration, water, lights and outlets. Air conditioning and large appliances are not backed up on this option.'
-  }[r.scenario];
-  const rows = fits.map(m=>{
-    const pct = Math.round(m.pct*100);
-    return `<tr><td><b>${m.brand}</b> ${m.model}</td><td style="text-align:right">${fkw(m.rated)} kW</td>
-            <td style="text-align:right">${pct}% loaded</td></tr>`;
-  }).join('');
-  return `<div class="cust-unit">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
-      <div><span class="cust-kw">${fkw(r.requiredKW)} kW</span>
-        <span style="font-size:11px;color:#555"> minimum on ${fuelName}</span></div>
-      <div style="font-size:12px;font-weight:700;color:#0f3260">${meta.title}</div>
-    </div>
-    <div style="font-size:11px;color:#555;margin-top:2px">Running load ${fkw(r.runningKW)} kW · momentary starting surge ${fkw(r.peakKW)} kW</div>
-    ${rows?`<table style="margin-top:6px"><tr><th>Equipment</th><th style="text-align:right">Rated</th><th style="text-align:right">Loading</th></tr>${rows}</table>`:''}
-    <div class="cust-plain">${plain}${best?` The ${best.brand} ${best.model} runs at ${Math.round(best.pct*100)}% of its capacity with this load — about ${Math.max(0,100-Math.round(best.pct*100))}% held in reserve.`:''}</div>
-  </div>`;
+function reserveWord(pct){
+  const r = 100 - pct;
+  if (r >= 25) return 'plenty of reserve capacity';
+  if (r >= 15) return 'a comfortable reserve';
+  return 'sized closely to your home';
 }
+function coverageLine(scen){
+  return {whole:'Backs up your whole home',
+          managed:'Backs up your whole home, with smart load management',
+          essential:'Backs up your essential circuits'}[scen] || 'Backs up your home';
+}
+function custScenBlock(r){ return ''; }   /* superseded by the consumer layout below */
+
 function renderCustomerPrint(){
   if(!lastResults) renderResults();
   const j = id=>$(id).value||'—';
-  const d = S.dealer, sheet = $('printSheet');
-  const chosen = lastResults.filter(r=>S.cust.scen[r.scenario]);
+  const L = locByKey(S.locKey);
+  const sheet = $('printSheet');
   const inc = S.cust.inc;
-  const on = activeLoads(S);
-  const ac = S.acs.find(a=>a.on);
+  const on  = activeLoads(S);
+  const ac  = S.acs.find(a=>a.on);
   const softOn = S.acs.some(a=>a.on && a.soft);
-  const ref = chosen.length ? (custFits(chosen[0]).slice().sort((a,b)=>a.rated-b.rated)[0]) : null;
-  const essList = on.filter(l=>l.essential).map(l=>custName(l.name)).join(', ');
+
+  // scenarios the estimator chose to show, in coverage order
+  const order = {whole:0, managed:1, essential:2};
+  let chosen = lastResults.filter(x=>S.cust.scen[x.scenario])
+                          .sort((a,b)=>order[a.scenario]-order[b.scenario]);
+  if (!chosen.length) chosen = lastResults.slice(0,1);
+
+  // collapse whole / managed when they land on the very same equipment
+  const sig = x => custFits(x).map(m=>m.brand+m.model).join('|');
+  if (chosen.length>1 && chosen[0].scenario==='whole' && chosen[1] &&
+      chosen[1].scenario==='managed' && sig(chosen[0])===sig(chosen[1])) chosen.splice(1,1);
+
+  const main  = chosen[0];
+  const fits  = custFits(main);
+  const best  = fits.slice().sort((a,b)=>a.rated-b.rated)[0];
+  const others= fits.filter(m=>m!==best);
+  const smaller = chosen.find(x=>x.scenario==='essential' && x!==main);
   const parts = [];
 
+  /* ---------- header ---------- */
   parts.push(`<div class="ph">
-      <div style="display:flex;align-items:center;gap:12px">
-        <img src="${ADAMS_LOGO}" alt="logo" style="height:48px">
-        <div><h1>Standby Generator Recommendation</h1>
-        <div class="muted">${ADAMS.legal} · Prepared ${new Date().toLocaleDateString('en-US')} · ${locByKey(S.locKey).phone} · ${ADAMS.web}</div></div>
+      <div style="display:flex;align-items:center;gap:13px">
+        <img src="${ADAMS_LOGO}" alt="Adams" style="height:52px">
+        <div><h1>Your Standby Generator Recommendation</h1>
+        <div class="muted">Prepared for <b>${j('jCustomer')}</b> &nbsp;·&nbsp; ${j('jAddress')}</div></div>
       </div>
-      <div class="muted" style="text-align:right">Prepared for: <b>${j('jCustomer')}</b><br>${j('jAddress')}<br>${S.sqft.toLocaleString()} sq ft · ${S.fuel==='NG'?'Natural gas':'Propane'}</div>
+      <div class="muted" style="text-align:right">${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}<br>
+        Prepared by <b>${salesmanName()}</b><br>Adams ${L.name}</div>
     </div>`);
 
-  parts.push(`<div class="cust-h">Your options</div>`);
-  parts.push(chosen.map(custScenBlock).join(''));
+  /* ---------- hero recommendation ---------- */
+  if (best) {
+    const pct = Math.round(best.pct*100);
+    parts.push(`<div class="c-hero">
+      <div class="c-eyebrow">Our recommendation for your home</div>
+      <div class="c-model">${best.brand} ${best.model}</div>
+      <div class="c-why">${coverageLine(main.scenario)} on ${S.fuel==='NG'?'natural gas':'propane'}.
+        Your home needs about ${fkw(main.runningKW)} kW running, and this unit delivers ${fkw(best.rated)} kW —
+        leaving ${reserveWord(pct)} for the years ahead.</div>
+      <div class="c-bar"><i style="width:${Math.min(100,pct)}%"></i></div>
+      <div class="c-barlbl">Your home uses about <b>${pct}%</b> of this generator’s capacity ·
+        roughly <b>${Math.max(0,100-pct)}%</b> held in reserve</div>
+    </div>`);
+  } else if (S.noOem) {
+    parts.push(`<div class="c-hero">
+      <div class="c-eyebrow">Our recommendation for your home</div>
+      <div class="c-model">${fkw(main.requiredKW)} kW standby generator</div>
+      <div class="c-why">${coverageLine(main.scenario)} on ${S.fuel==='NG'?'natural gas':'propane'}.</div></div>`);
+  }
 
+  /* ---------- what stays on ---------- */
   if (inc.outage) {
-    parts.push(`<div class="cust-h">What runs when the power is out</div>
-      <div class="cust-plain">Whole-house coverage carries everything on this list at once:
-      ${on.map(l=>custName(l.name)).join(', ')}, plus general lighting, receptacles and the kitchen and laundry circuits.
-      ${essList?`On the essentials-only option the generator carries ${essList.toLowerCase()}, plus lighting and outlets.`:''}</div>`);
-  }
-  if (inc.surge && ac) {
-    parts.push(`<div class="cust-h">Why the starting surge matters</div>
-      <div class="cust-plain">Your ${ac.tons}-ton air conditioner draws roughly ${fkw(ac.lra*240/1000)} kW for the moment its compressor starts — several times its running draw. A generator has to absorb that instant without stalling or dimming lights, which is often what decides the size rather than the everyday load.</div>`);
-  }
-  if (inc.soft && softOn && ac) {
-    parts.push(`<div class="cust-h">Soft starter on the air conditioner</div>
-      <div class="cust-plain">A soft-start device on the compressor reduces that startup draw by about ${Math.round((1-SOFT_START_MULT)*100)}% — from ${fkw(ac.lra*240/1000)} kW down to ${fkw(ac.lra*240*SOFT_START_MULT/1000)} kW. On a home like yours that is frequently the difference between one generator size and the next, and it is a small addition to the air conditioner rather than a larger machine.</div>`);
-  }
-  if (inc.fuel && ref) {
-    const f = fuelDraw(ref.rated);
-    if (S.fuel==='NG'){
-      const tot = Math.round(f.btu/1000) + (S.gas.furnace+S.gas.wh+S.gas.range+S.gas.dryer+S.gas.other);
-      const over = tot > S.gas.meter;
-      parts.push(`<div class="cust-h">Natural gas service</div>
-        <div class="cust-plain">The ${ref.brand} ${ref.model} draws about ${fmt(Math.round(f.btu/1000))},000 BTU per hour at full load. Added to your existing gas appliances that is roughly ${fmt(tot)},000 BTU/hr against a meter rated near ${fmt(S.gas.meter)},000.
-        ${over?'That means the gas utility will most likely need to upsize your meter. It is usually a no-cost or low-cost change, and we submit the request as part of the installation.':'Your existing meter appears adequate; we confirm line size and pressure during the site visit.'}</div>`);
-    } else {
-      parts.push(`<div class="cust-h">Propane supply</div>
-        <div class="cust-plain">The ${ref.brand} ${ref.model} burns about ${f.gal.toFixed(1)} gallons per hour at full load. A typical three-day outage at roughly half load uses near ${Math.round(f.gal*0.55*72)} gallons, so we recommend a ${ref.rated<=14?'250':'500'}-gallon tank minimum. Cold-weather vaporization is confirmed at the site visit.</div>`);
+    const items = on.filter(l=>main.scenario!=='essential' || l.essential).map(l=>custName(l.name));
+    items.push('Lights and outlets throughout the home', 'Kitchen and laundry circuits');
+    parts.push(`<div class="c-sec">What keeps running when the power goes out</div>
+      <div class="c-grid">${items.map(t=>`<div><span class="c-tick">✓</span>${t}</div>`).join('')}</div>`);
+    if (main.scenario!=='essential') {
+      parts.push(`<div class="c-body" style="margin-top:7px">Everything above runs at the same time. The generator starts on its own within seconds of an outage and shuts itself down when utility power returns — nothing for you to switch or reset.</div>`);
     }
   }
-  if (inc.basis) {
-    parts.push(`<div class="cust-h">How this size was determined</div>
-      <div class="cust-plain">This is the NEC Article 220.83(B) load calculation — the same method a licensed electrician performs for a service upgrade, not a rule of thumb or a square-footage estimate. Every load in your home was counted individually, code demand factors applied, and the largest motor checked against the generator's starting capability. The full line-by-line breakdown is available on request.</div>`);
+
+  /* ---------- other equipment that fits ---------- */
+  if (others.length) {
+    parts.push(`<div class="c-sec">Other equipment that fits your home</div>`);
+    parts.push(others.map(m=>`<div class="c-alt"><b>${m.brand} ${m.model}</b> — ${fkw(m.rated)} kW,
+      about ${Math.max(0,100-Math.round(m.pct*100))}% held in reserve.</div>`).join(''));
   }
 
-  parts.push(`<div class="foot" style="margin-top:14px">${ADAMS.legal} · ${locByKey(S.locKey).addr} · ${locByKey(S.locKey).phone} · ${ADAMS.web} · Prepared by ${salesmanName()} · Equipment ratings are manufacturer published figures and are confirmed against current spec sheets before order. Final placement, gas sizing and permitting are verified at the site visit.</div>`);
+  /* ---------- smaller option ---------- */
+  if (smaller) {
+    const sf = custFits(smaller).slice().sort((a,b)=>a.rated-b.rated)[0];
+    const essList = on.filter(l=>l.essential).map(l=>custName(l.name)).join(', ');
+    parts.push(`<div class="c-sec">A smaller option</div>
+      <div class="c-alt">${sf?`<b>${sf.brand} ${sf.model}</b> — ${fkw(sf.rated)} kW. `:''}
+      Covers ${essList?essList.toLowerCase():'your essential circuits'}, plus lights and outlets.
+      Air conditioning and the large appliances are not backed up on this option.</div>`);
+  }
+
+  /* ---------- good to know ---------- */
+  const notes = [];
+  if (inc.surge && ac) notes.push(`<b>Your air conditioner is the hardest thing to start.</b> For the instant its
+    compressor kicks on, a ${ac.tons}-ton unit pulls several times its normal draw. The generator has to absorb that
+    without stalling or dimming your lights — which is often what decides the size, more than everyday use.`);
+  if (inc.soft && softOn && ac) notes.push(`<b>A soft starter on the air conditioner</b> smooths out that startup
+    surge by roughly ${Math.round((1-SOFT_START_MULT)*100)}%. It is a small addition to your A/C, and on a home like
+    yours it is frequently the difference between one generator size and the next.`);
+  if (inc.fuel && best) {
+    const f = fuelDraw(best.rated);
+    if (S.fuel==='NG'){
+      const tot = Math.round(f.btu/1000) + (S.gas.furnace+S.gas.wh+S.gas.range+S.gas.dryer+S.gas.other);
+      notes.push(`<b>Natural gas.</b> You will never refuel it — the generator runs off your gas line.
+        ${tot > S.gas.meter
+          ? 'Your gas meter will most likely need to be upsized, which is usually no cost or low cost. We file that request with the utility as part of the installation.'
+          : 'Your existing meter looks adequate; we confirm line size and pressure at the site visit.'}`);
+    } else {
+      notes.push(`<b>Propane.</b> At about ${f.gal.toFixed(1)} gallons an hour under full load, a typical three-day
+        outage uses near ${Math.round(f.gal*0.55*72)} gallons. We recommend a ${best.rated<=14?'250':'500'}-gallon tank
+        so you are not watching the gauge, and we confirm cold-weather capacity at the site visit.`);
+    }
+  }
+  if (notes.length) {
+    parts.push(`<div class="c-sec">Good to know</div>`);
+    parts.push(notes.map(n=>`<div class="c-body" style="margin-bottom:6px">${n}</div>`).join(''));
+  }
+
+  /* ---------- how we sized it ---------- */
+  if (inc.basis) {
+    parts.push(`<div class="c-sec">How we arrived at this size</div>
+      <div class="c-body">We counted every load in your home individually — not a square-footage rule of thumb — and ran the same
+      electrical code calculation a licensed electrician performs for a service upgrade, then checked the
+      hardest-starting motor against the generator's starting capability. Ratings were adjusted for
+      ${fmt(S.elev)} ft elevation and Midwest summer heat, both of which reduce real-world output.
+      The full line-by-line worksheet is yours on request.</div>`);
+  }
+
+  /* ---------- next steps ---------- */
+  parts.push(`<div style="break-inside:avoid"><div class="c-sec">What happens next</div>
+    <div class="c-card">
+      <div class="c-step"><span class="c-stepn">1</span>We walk the property together — placement, gas line, electrical panel and permitting.</div>
+      <div class="c-step"><span class="c-stepn">2</span>You get a firm, itemized quote with no surprises.</div>
+      <div class="c-step"><span class="c-stepn">3</span>We handle permits, utility paperwork and the install, then test the system with you.</div>
+    </div></div>`);
+
+  parts.push(`<div class="c-sig">
+      <div style="font-size:12px;line-height:1.6"><b style="color:#0f3260">Questions? Call ${salesmanName()}</b><br>
+        <span style="font-size:14px;font-weight:800;color:#c8102e">${L.phone}</span></div>
+      <div style="text-align:right;font-size:10.5px;color:#555;line-height:1.55">
+        <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr}<br>${ADAMS.web}</div>
+    </div>`);
+
+  parts.push(`<div class="foot" style="margin-top:6px">Equipment ratings are published manufacturer figures, confirmed
+    against current spec sheets before order. Placement, gas sizing and permitting are verified at the site visit.
+    This is a sizing recommendation, not a quote.</div>`);
+
   sheet.innerHTML = parts.join('');
 }
 
