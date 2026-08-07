@@ -128,25 +128,32 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .cust-plain{font-size:11px;color:#333;line-height:1.42;margin-top:3px}
   #printSheet .cust-h{font-size:12px;font-weight:700;color:#0f3260;margin:9px 0 2px}
   /* ---- consumer summary ---- */
-  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:12px 16px;margin-bottom:8px;break-inside:avoid}
+  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:10px 15px;margin-bottom:7px;break-inside:avoid}
   #printSheet .c-eyebrow{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#c8102e;font-weight:800}
-  #printSheet .c-model{font-size:22px;font-weight:800;color:#0f3260;line-height:1.15;margin-top:3px}
+  #printSheet .c-model{font-size:21px;font-weight:800;color:#0f3260;line-height:1.12;margin-top:2px}
   #printSheet .c-why{font-size:11.5px;color:#222;margin-top:5px;line-height:1.5}
   #printSheet .c-bar{height:9px;border-radius:5px;background:#e6eaf0;margin-top:8px;overflow:hidden}
   #printSheet .c-bar i{display:block;height:100%;background:#0f3260;border-radius:5px}
   #printSheet .c-barlbl{font-size:10.5px;color:#555;margin-top:4px}
-  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:9px 0 3px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
-  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.52;margin-top:1px}
+  #printSheet .c-specs{display:flex;margin-top:7px;border-top:1px solid #cfd6e0;padding-top:6px}
+  #printSheet .c-spec{flex:1;border-right:1px solid #e2e7ee;padding:0 9px}
+  #printSheet .c-spec:first-child{padding-left:0}
+  #printSheet .c-spec:last-child{border-right:none;padding-right:0}
+  #printSheet .c-specv{font-size:13.5px;font-weight:800;color:#0f3260;line-height:1.2}
+  #printSheet .c-speck{font-size:8.5px;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;font-weight:700;margin-top:2px}
+  #printSheet .c-tech{font-size:9.5px;color:#666;line-height:1.4;margin-top:4px}
+  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:6px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
+  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.4;margin-top:1px}
   #printSheet .c-grid div{break-inside:avoid}
   #printSheet .c-tick{color:#0f3260;font-weight:800;margin-right:5px}
-  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:7px 12px;margin-top:5px;break-inside:avoid}
+  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
   #printSheet .c-alt b{color:#0f3260}
-  #printSheet .c-body{font-size:11px;color:#333;line-height:1.5;margin-top:2px}
-  #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:8px 13px;margin-top:5px;break-inside:avoid}
-  #printSheet .c-step{font-size:11px;line-height:1.5;margin-bottom:4px}
+  #printSheet .c-body{font-size:11px;color:#333;line-height:1.44;margin-top:2px}
+  #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:7px 12px;margin-top:4px;break-inside:avoid}
+  #printSheet .c-step{font-size:10.5px;line-height:1.45;margin-bottom:3px}
   #printSheet .c-stepn{display:inline-block;width:17px;height:17px;border-radius:9px;background:#c8102e;color:#fff;
       font-size:10px;font-weight:800;text-align:center;line-height:17px;margin-right:7px}
-  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:9px;padding-top:7px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:7px;padding-top:6px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
   .mgdrow{align-items:center;gap:8px}
   .mgdrow .pill{font-size:9.5px;white-space:nowrap}
   .modebadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
@@ -167,8 +174,8 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     body>*:not(#printSheet){display:none !important}
     body{background:#fff}
     #printSheet{display:block;padding:0;font-size:12px;color:#111}
-    #printSheet h1{font-size:20px;margin-bottom:2px}
-    #printSheet .ph{border-bottom:3px solid #0f3260;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}
+    #printSheet h1{font-size:19px;margin-bottom:2px}
+    #printSheet .ph{border-bottom:3px solid #0f3260;padding-bottom:7px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:flex-end}
     #printSheet .muted{color:#555;font-size:11px}
     #printSheet table{width:100%;border-collapse:collapse;margin:8px 0 14px}
     #printSheet th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #999;padding:4px 6px}
@@ -177,7 +184,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     #printSheet .opt h3{font-size:13px}
     #printSheet .opt .big{font-size:20px;font-weight:800}
     #printSheet .rec{border:2px solid #1a2332}
-    #printSheet .foot{margin-top:14px;font-size:10px;color:#666;line-height:1.5}
+    #printSheet .foot{margin-top:14px;font-size:10px;color:#666;line-height:1.45;break-inside:avoid}
   }
 </style>
 </head>
@@ -1041,7 +1048,7 @@ function renderCustomerPrint(){
   /* ---------- header ---------- */
   parts.push(`<div class="ph">
       <div style="display:flex;align-items:center;gap:13px">
-        <img src="${ADAMS_LOGO}" alt="Adams" style="height:52px">
+        <img src="${ADAMS_LOGO}" alt="Adams" style="height:46px">
         <div><h1>Your Standby Generator Recommendation</h1>
         <div class="muted">Prepared for <b>${j('jCustomer')}</b> &nbsp;·&nbsp; ${j('jAddress')}</div></div>
       </div>
@@ -1055,12 +1062,17 @@ function renderCustomerPrint(){
     parts.push(`<div class="c-hero">
       <div class="c-eyebrow">Our recommendation for your home</div>
       <div class="c-model">${best.brand} ${best.model}</div>
-      <div class="c-why">${coverageLine(main.scenario)} on ${S.fuel==='NG'?'natural gas':'propane'}.
-        Your home needs about ${fkw(main.runningKW)} kW running, and this unit delivers ${fkw(best.rated)} kW —
-        leaving ${reserveWord(pct)} for the years ahead.</div>
+      <div class="c-why">${coverageLine(main.scenario)} on ${S.fuel==='NG'?'natural gas':'propane'}, with
+        ${reserveWord(pct)} for the years ahead.</div>
       <div class="c-bar"><i style="width:${Math.min(100,pct)}%"></i></div>
       <div class="c-barlbl">Your home uses about <b>${pct}%</b> of this generator’s capacity ·
         roughly <b>${Math.max(0,100-pct)}%</b> held in reserve</div>
+      <div class="c-specs">
+        <div class="c-spec"><div class="c-specv">${fkw(main.requiredKW)} kW</div><div class="c-speck">Capacity required</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(main.runningKW)} kW</div><div class="c-speck">Running load</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(main.peakKW)} kW</div><div class="c-speck">Starting surge</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(best.rated)} kW</div><div class="c-speck">Rated on ${S.fuel==='NG'?'natural gas':'LP'}</div></div>
+      </div>
     </div>`);
   } else if (S.noOem) {
     parts.push(`<div class="c-hero">
@@ -1076,14 +1088,15 @@ function renderCustomerPrint(){
     parts.push(`<div class="c-sec">What keeps running when the power goes out</div>
       <div class="c-grid">${items.map(t=>`<div><span class="c-tick">✓</span>${t}</div>`).join('')}</div>`);
     if (main.scenario!=='essential') {
-      parts.push(`<div class="c-body" style="margin-top:7px">Everything above runs at the same time. The generator starts on its own within seconds of an outage and shuts itself down when utility power returns — nothing for you to switch or reset.</div>`);
+      parts.push(`<div class="c-body" style="margin-top:7px">All of it runs at once. The generator starts itself within seconds of an outage and shuts down when utility power returns — nothing for you to switch or reset.</div>`);
     }
   }
 
   /* ---------- other equipment that fits ---------- */
   if (others.length) {
     parts.push(`<div class="c-sec">Other equipment that fits your home</div>`);
-    parts.push(others.map(m=>`<div class="c-alt"><b>${m.brand} ${m.model}</b> — ${fkw(m.rated)} kW,
+    parts.push(others.map(m=>`<div class="c-alt"><b>${m.brand} ${m.model}</b> — ${fkw(m.rated)} kW rated on
+      ${S.fuel==='NG'?'natural gas':'LP'}; runs at ${Math.round(m.pct*100)}% of capacity with your load,
       about ${Math.max(0,100-Math.round(m.pct*100))}% held in reserve.</div>`).join(''));
   }
 
@@ -1092,7 +1105,8 @@ function renderCustomerPrint(){
     const sf = custFits(smaller).slice().sort((a,b)=>a.rated-b.rated)[0];
     const essList = on.filter(l=>l.essential).map(l=>custName(l.name)).join(', ');
     parts.push(`<div class="c-sec">A smaller option</div>
-      <div class="c-alt">${sf?`<b>${sf.brand} ${sf.model}</b> — ${fkw(sf.rated)} kW. `:''}
+      <div class="c-alt">${sf?`<b>${sf.brand} ${sf.model}</b> — ${fkw(sf.rated)} kW rated,
+      ${fkw(smaller.requiredKW)} kW required (${Math.round(sf.pct*100)}% loaded). `:''}
       Covers ${essList?essList.toLowerCase():'your essential circuits'}, plus lights and outlets.
       Air conditioning and the large appliances are not backed up on this option.</div>`);
   }
@@ -1100,18 +1114,21 @@ function renderCustomerPrint(){
   /* ---------- good to know ---------- */
   const notes = [];
   if (inc.surge && ac) notes.push(`<b>Your air conditioner is the hardest thing to start.</b> For the instant its
-    compressor kicks on, a ${ac.tons}-ton unit pulls several times its normal draw. The generator has to absorb that
-    without stalling or dimming your lights — which is often what decides the size, more than everyday use.`);
-  if (inc.soft && softOn && ac) notes.push(`<b>A soft starter on the air conditioner</b> smooths out that startup
-    surge by roughly ${Math.round((1-SOFT_START_MULT)*100)}%. It is a small addition to your A/C, and on a home like
-    yours it is frequently the difference between one generator size and the next.`);
+    compressor kicks on, your ${ac.tons}-ton unit pulls roughly <b>${fkw(ac.lra*240/1000)} kW</b> — several times its
+    running draw. The generator has to absorb that without stalling or dimming your lights, and that momentary surge is
+    often what decides the size rather than everyday use.`);
+  if (inc.soft && softOn && ac) notes.push(`<b>A soft starter on the air conditioner</b> cuts that startup surge by
+    roughly ${Math.round((1-SOFT_START_MULT)*100)}% — from ${fkw(ac.lra*240/1000)} kW down to
+    ${fkw(ac.lra*240*SOFT_START_MULT/1000)} kW. It is a small addition to your A/C, and on a home like yours it is
+    frequently the difference between one generator size and the next.`);
   if (inc.fuel && best) {
     const f = fuelDraw(best.rated);
     if (S.fuel==='NG'){
       const tot = Math.round(f.btu/1000) + (S.gas.furnace+S.gas.wh+S.gas.range+S.gas.dryer+S.gas.other);
-      notes.push(`<b>Natural gas.</b> You will never refuel it — the generator runs off your gas line.
-        ${tot > S.gas.meter
-          ? 'Your gas meter will most likely need to be upsized, which is usually no cost or low cost. We file that request with the utility as part of the installation.'
+      notes.push(`<b>Natural gas.</b> You will never refuel it. At full load this unit draws about
+        ${fmt(Math.round(f.btu/1000))},000 BTU/hr; with your existing appliances that is roughly ${fmt(tot)},000 BTU/hr
+        against a meter rated near ${fmt(S.gas.meter)},000. ${tot > S.gas.meter
+          ? 'Your meter will most likely need upsizing — usually no cost or low cost, and we file that request with the utility.'
           : 'Your existing meter looks adequate; we confirm line size and pressure at the site visit.'}`);
     } else {
       notes.push(`<b>Propane.</b> At about ${f.gal.toFixed(1)} gallons an hour under full load, a typical three-day
@@ -1127,11 +1144,13 @@ function renderCustomerPrint(){
   /* ---------- how we sized it ---------- */
   if (inc.basis) {
     parts.push(`<div class="c-sec">How we arrived at this size</div>
-      <div class="c-body">We counted every load in your home individually — not a square-footage rule of thumb — and ran the same
-      electrical code calculation a licensed electrician performs for a service upgrade, then checked the
-      hardest-starting motor against the generator's starting capability. Ratings were adjusted for
-      ${fmt(S.elev)} ft elevation and Midwest summer heat, both of which reduce real-world output.
-      The full line-by-line worksheet is yours on request.</div>`);
+      <div class="c-body">We counted every load in your home individually — not a square-footage rule of thumb — then ran the
+      <b>NEC Article 220.83(B) optional load calculation</b>, the same method a licensed electrician performs for a
+      service upgrade, and checked your hardest-starting motor against the generator's starting capability.</div>
+      <div class="c-tech">Technical basis: lighting and receptacles at ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus
+      ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA and 40% on the remainder;
+      larger of heating or cooling at 100%.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F design temperature.`:''}
+      Running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output. Full worksheet on request.</div>`);
   }
 
   /* ---------- next steps ---------- */
@@ -1149,7 +1168,7 @@ function renderCustomerPrint(){
         <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr}<br>${ADAMS.web}</div>
     </div>`);
 
-  parts.push(`<div class="foot" style="margin-top:6px">Equipment ratings are published manufacturer figures, confirmed
+  parts.push(`<div class="foot" style="margin-top:5px">Equipment ratings are published manufacturer figures, confirmed
     against current spec sheets before order. Placement, gas sizing and permitting are verified at the site visit.
     This is a sizing recommendation, not a quote.</div>`);
 
