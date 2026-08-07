@@ -558,7 +558,7 @@ const S = {
   brandSel:{"Generac":true,"Kohler":true,"Briggs & Stratton":true},
   noOem:false, logoData:null,
   mgmtMode:'carry',   // 'carry' = set runs its largest shed load · 'shed' = shed loads excluded
-  defaults:{ elev:0, ambF:60 },   // dealer-level site defaults — most members work one metro
+  defaults:{ elev:1050, ambF:90 },   // Adams market default — Elkhorn, WI (1,037 ft) · Midwest summer design
   cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all',
          inc:{outage:true, surge:true, soft:true, fuel:true, basis:true} },
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
@@ -599,7 +599,7 @@ S.elevSource = 'default';   // 'default' | 'entered' | 'device'
 const TEMP_BANDS = [
   {f:60,  label:'Not applied — manufacturer test basis (60°F)'},
   {f:85,  label:'Mild — 85°F (Pacific NW, coastal, far north)'},
-  {f:90,  label:'Moderate — 90°F (most of the country)'},
+  {f:90,  label:'Midwest — 90°F (Wisconsin, northern Illinois)'},
   {f:95,  label:'Hot — 95°F (South, Southeast, lower Midwest)'},
   {f:105, label:'Very hot — 105°F (interior West, Texas)'},
   {f:115, label:'Desert — 115°F (Phoenix, Vegas, inland SoCal)'}
@@ -1287,6 +1287,10 @@ function fillDefaultTempBands(){
   sel.innerHTML = TEMP_BANDS.map(b=>`<option value="${b.f}">${b.label}</option>`).join('');
   sel.value = S.defaults.ambF;
 }
+// seed site-condition inputs from the Adams market defaults; loadDealer()
+// overrides these if this device has its own saved defaults
+$('jDefElev').value = S.defaults.elev;
+$('jElev').value = S.defaults.elev; S.elevSource = 'default';
 fillTempBands(); fillDefaultTempBands();
 loadDealer(); fillSalesmen();
 fillCustBrands(); fillTempBands(); fillDefaultTempBands(); setElevNote();
