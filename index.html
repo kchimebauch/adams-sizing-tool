@@ -191,6 +191,10 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         <select id="jSalesman"></select>
         <input type="text" id="jSalesmanOther" placeholder="Name" style="display:none;margin-top:4px">
       </label>
+      <label class="f">Adams Location
+        <select id="jLoc"></select>
+        <span id="locNote" style="font-size:10.5px;color:var(--ink-3);margin-top:2px"></span>
+      </label>
       <label class="f">Finished Sq Ft<input type="number" id="jSqft" value="2000" min="0" step="50"></label>
       <label class="f">Small-appliance Circuits (Kitchen)<input type="number" id="jSAC" value="2" min="2" max="6"></label>
       <label class="f">Fuel
@@ -548,9 +552,30 @@ function sum(arr, fn){ return arr.reduce((a,x)=>a+fn(x), 0); }
 /* ============================================================
    STATE
    ============================================================ */
-/* ---- Adams salesmen. Edit this list to add or remove people. ---- */
-const SALESMEN = ["Rob Dicka","Dan Schopp","Josh Macara","Joe Weigert",
-                 "Timothy Travis","Jeremy Zinn","Adams Virtual Team"];
+/* ---- Adams branches. Each drives the site elevation AND the address and
+       phone printed on the customer's summary. Edit addr/phone here. ---- */
+const LOCATIONS = [
+  {key:'elkhorn',  name:'Elkhorn, WI',   addr:'801 N. Wisconsin St., Elkhorn, WI 53121',      phone:'262-723-6565', elev:1050},
+  {key:'greenbay', name:'Green Bay, WI', addr:'722 Green Bay Road, Denmark, WI 54208',        phone:'920-606-4033', elev:900},
+  {key:'hazel',    name:'Hazelhurst, WI',addr:'7100 US Hwy 51, Hazelhurst, WI 54531',         phone:'715-803-6900', elev:1625},
+  {key:'madison',  name:'Madison, WI',   addr:'Madison, WI',                                   phone:'833-535-6760', elev:900},
+  {key:'morris',   name:'Morris, IL',    addr:'1299 Leah Rd, Morris, IL 60450',                phone:'815-200-1968', elev:525},
+  {key:'waukesha', name:'Waukesha, WI',  addr:'W226N2940 Duplainville Rd, Waukesha, WI 53186', phone:'262-307-2329', elev:815},
+  {key:'wausau',   name:'Wausau, WI',    addr:'1116 E. State Highway 153, Mosinee, WI 54455',  phone:'715-907-8715', elev:1170}
+];
+
+/* ---- Adams salesmen. `loc` is the branch key above — picking a salesman
+       sets that branch automatically. Edit this list to add or remove people. ---- */
+const SALESMEN = [
+  {name:"Rob Dicka",          loc:'elkhorn'},
+  {name:"Dan Schopp",         loc:'elkhorn'},
+  {name:"Josh Macara",        loc:'elkhorn'},
+  {name:"Joe Weigert",        loc:'elkhorn'},
+  {name:"Timothy Travis",     loc:'elkhorn'},
+  {name:"Jeremy Zinn",        loc:'elkhorn'},
+  {name:"Adams Virtual Team", loc:'elkhorn'}
+];
+function locByKey(k){ return LOCATIONS.find(l=>l.key===k) || LOCATIONS[0]; }
 
 const S = {
   expert:false, step:0,
@@ -558,7 +583,8 @@ const S = {
   brandSel:{"Generac":true,"Kohler":true,"Briggs & Stratton":true},
   noOem:false, logoData:null,
   mgmtMode:'carry',   // 'carry' = set runs its largest shed load · 'shed' = shed loads excluded
-  defaults:{ elev:1050, ambF:90 },   // Adams market default — Elkhorn, WI (1,037 ft) · Midwest summer design
+  defaults:{ elev:1050, ambF:90 },   // fallback if no branch is selected
+  locKey:'elkhorn',                  // selected Adams branch — drives elevation + printed contact info
   cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all',
          inc:{outage:true, surge:true, soft:true, fuel:true, basis:true} },
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
@@ -997,7 +1023,7 @@ function renderCustomerPrint(){
       <div style="display:flex;align-items:center;gap:12px">
         <img src="${ADAMS_LOGO}" alt="logo" style="height:48px">
         <div><h1>Standby Generator Recommendation</h1>
-        <div class="muted">${ADAMS.legal} · Prepared ${new Date().toLocaleDateString('en-US')} · ${ADAMS.phone} · ${ADAMS.web}</div></div>
+        <div class="muted">${ADAMS.legal} · Prepared ${new Date().toLocaleDateString('en-US')} · ${locByKey(S.locKey).phone} · ${ADAMS.web}</div></div>
       </div>
       <div class="muted" style="text-align:right">Prepared for: <b>${j('jCustomer')}</b><br>${j('jAddress')}<br>${S.sqft.toLocaleString()} sq ft · ${S.fuel==='NG'?'Natural gas':'Propane'}</div>
     </div>`);
@@ -1037,7 +1063,7 @@ function renderCustomerPrint(){
       <div class="cust-plain">This is the NEC Article 220.83(B) load calculation — the same method a licensed electrician performs for a service upgrade, not a rule of thumb or a square-footage estimate. Every load in your home was counted individually, code demand factors applied, and the largest motor checked against the generator's starting capability. The full line-by-line breakdown is available on request.</div>`);
   }
 
-  parts.push(`<div class="foot" style="margin-top:14px">${ADAMS.legal} · ${ADAMS.addr} · ${ADAMS.phone} · ${ADAMS.web} · Prepared by ${salesmanName()} · Equipment ratings are manufacturer published figures and are confirmed against current spec sheets before order. Final placement, gas sizing and permitting are verified at the site visit.</div>`);
+  parts.push(`<div class="foot" style="margin-top:14px">${ADAMS.legal} · ${locByKey(S.locKey).addr} · ${locByKey(S.locKey).phone} · ${ADAMS.web} · Prepared by ${salesmanName()} · Equipment ratings are manufacturer published figures and are confirmed against current spec sheets before order. Final placement, gas sizing and permitting are verified at the site visit.</div>`);
   sheet.innerHTML = parts.join('');
 }
 
@@ -1053,9 +1079,9 @@ function renderPrint(){
       <div style="display:flex;align-items:center;gap:12px">
         <img src="${ADAMS_LOGO}" alt="logo" style="height:48px">
         <div><h1>Standby Generator Sizing Summary</h1>
-        <div class="muted">${ADAMS.legal} · Prepared ${new Date().toLocaleDateString('en-US')} · Fuel: ${S.fuel==='NG'?'Natural gas':'Propane'} · ${ADAMS.phone}</div></div>
+        <div class="muted">${ADAMS.legal} · Prepared ${new Date().toLocaleDateString('en-US')} · Fuel: ${S.fuel==='NG'?'Natural gas':'Propane'} · ${locByKey(S.locKey).phone}</div></div>
       </div>
-      <div class="muted" style="text-align:right">Customer: <b>${j('jCustomer')}</b><br>${j('jAddress')}<br>Salesman: ${salesmanName()}</div>
+      <div class="muted" style="text-align:right">Customer: <b>${j('jCustomer')}</b><br>${j('jAddress')}<br>Salesman: ${salesmanName()} · ${locByKey(S.locKey).name}</div>
     </div>
     <h3 style="font-size:13px;margin-bottom:2px">Loads counted (${S.sqft.toLocaleString()} sq ft home)</h3>
     <table><tr><th>Load</th><th style="text-align:right">Running W</th><th style="text-align:right">Starting W</th><th>Essential</th><th>Managed</th></tr>
@@ -1096,11 +1122,11 @@ function renderPrint(){
     })()}
     <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:8px 10px;border:1px solid #ccc;border-radius:6px;width:fit-content">
       <img src="${ADAMS_LOGO}" alt="Adams" style="height:30px">
-      <span style="font-size:11px;color:#333"><b>${ADAMS.legal}</b><br>${ADAMS.addr} · ${ADAMS.phone} · ${ADAMS.web}</span>
+      <span style="font-size:11px;color:#333"><b>${ADAMS.legal} — ${locByKey(S.locKey).name}</b><br>${locByKey(S.locKey).addr} · ${locByKey(S.locKey).phone} · ${ADAMS.web}</span>
     </div>
-    <div class="foot">${deratePct()>0?`Site derate: ratings reduced <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation (${{device:'from device location',entered:'entered',default:'dealer default'}[S.elevSource]||'entered'}) and ${S.ambientF}°F design temperature (${DERATE_PER_KFT*100}% per 1,000 ft, ${DERATE_PER_10F*100}% per 10°F above ${DERATE_BASE_F}°F). `:''}Load-management sizing policy: <b>${S.mgmtMode==='shed'?'Size to Shed':'Size to Carry'}</b> — ${S.mgmtMode==='shed'
+    <div class="foot">${deratePct()>0?`Site derate: ratings reduced <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation (${{device:'from device location',entered:'entered',location:locByKey(S.locKey).name,default:'default'}[S.elevSource]||'entered'}) and ${S.ambientF}°F design temperature (${DERATE_PER_KFT*100}% per 1,000 ft, ${DERATE_PER_10F*100}% per 10°F above ${DERATE_BASE_F}°F). `:''}Load-management sizing policy: <b>${S.mgmtMode==='shed'?'Size to Shed':'Size to Carry'}</b> — ${S.mgmtMode==='shed'
         ? 'shed loads are excluded from the continuous requirement (the set is sized to what stays on), with a check that the set could still run its largest shed load.'
-        : 'the set is sized to run its largest shed load at any time; the module staggers loads for comfort rather than to keep the set within capacity.'} Standard inclusions counted automatically: general lighting &amp; receptacles (${S.vaSqft} VA/sq ft per NEC ${S.necVer}), ${S.sac} kitchen small-appliance circuits, the NEC laundry circuit, and a garbage disposal. Method: NEC 220.83(B) optional calculation — general and appliance loads demand-factored (first 8 kVA @ 100%, remainder @ 40%), larger of heating or cooling at 100%, largest-motor starting check against running load. Sizing policy: running load capped at 90% of the unit's rating on the selected fuel; starting peak within ${SURGE_FACTOR}× rating. Ratings shown are typical published figures — final selection verified against manufacturer spec sheets. This is a sizing aid, not an engineering document. · ${ADAMS.legal} · ${ADAMS.phone} · ${ADAMS.web}</div>`;
+        : 'the set is sized to run its largest shed load at any time; the module staggers loads for comfort rather than to keep the set within capacity.'} Standard inclusions counted automatically: general lighting &amp; receptacles (${S.vaSqft} VA/sq ft per NEC ${S.necVer}), ${S.sac} kitchen small-appliance circuits, the NEC laundry circuit, and a garbage disposal. Method: NEC 220.83(B) optional calculation — general and appliance loads demand-factored (first 8 kVA @ 100%, remainder @ 40%), larger of heating or cooling at 100%, largest-motor starting check against running load. Sizing policy: running load capped at 90% of the unit's rating on the selected fuel; starting peak within ${SURGE_FACTOR}× rating. Ratings shown are typical published figures — final selection verified against manufacturer spec sheets. This is a sizing aid, not an engineering document. · ${ADAMS.legal} · ${locByKey(S.locKey).addr} · ${locByKey(S.locKey).phone} · ${ADAMS.web}</div>`;
 }
 
 /* ---------- wizard / mode ---------- */
@@ -1173,7 +1199,8 @@ function fillTempBands(){
 }
 function setElevNote(){
   const el=$('elevNote'); if(!el) return;
-  const src = {device:'from this device\u2019s location', entered:'entered manually', default:'your saved default'}[S.elevSource]||'';
+  const src = {device:'from this device\u2019s location', entered:'entered manually',
+               location:locByKey(S.locKey).name, default:'your saved default'}[S.elevSource]||'';
   const d = deratePct();
   el.textContent = d>0 ? `${src} \u00b7 ratings derated \u2212${d}% at this site`
                        : `${src} \u00b7 no derate at this elevation`;
@@ -1238,6 +1265,10 @@ function loadDealer(){
     $('jElev').value = S.defaults.elev; S.elevSource = 'default';
     $('jDefAmbF').value = S.defaults.ambF; $('jAmbF').value = S.defaults.ambF;
   }
+  if (v.locKey && LOCATIONS.some(l=>l.key===v.locKey)) {
+    S.locKey = v.locKey;
+    $('jElev').value = locByKey(v.locKey).elev; S.elevSource = 'location';
+  }
   if (v.cust) { S.cust = Object.assign(S.cust, v.cust);
     document.querySelectorAll('.custScen').forEach(cb=>cb.checked = !!S.cust.scen[cb.value]);
     document.querySelectorAll('.custInc').forEach(cb=>cb.checked = !!S.cust.inc[cb.value]); }
@@ -1261,25 +1292,48 @@ function applyLogo(){
   img.style.display = '';
 }
 
-/* ---- salesman dropdown ---- */
+/* ---- salesman + branch dropdowns ---- */
 function fillSalesmen(){
   const sel = $('jSalesman');
   sel.innerHTML = '<option value="">— select —</option>'
-    + SALESMEN.map(n=>`<option value="${n}">${n}</option>`).join('')
+    + SALESMEN.map(p=>`<option value="${p.name}">${p.name}</option>`).join('')
     + '<option value="__other">Other…</option>';
   const saved = (store.get()||{}).salesman;
-  if (saved && (SALESMEN.includes(saved))) sel.value = saved;
+  if (saved && SALESMEN.some(p=>p.name===saved)) sel.value = saved;
 }
 function salesmanName(){
   const v = $('jSalesman').value;
   if (v === '__other') return $('jSalesmanOther').value.trim() || '—';
   return v || '—';
 }
+function fillLocations(){
+  const sel = $('jLoc');
+  sel.innerHTML = LOCATIONS.map(l=>`<option value="${l.key}">${l.name}</option>`).join('');
+  sel.value = S.locKey;
+  setLocNote();
+}
+function setLocNote(){
+  const el = $('locNote'); if(!el) return;
+  const l = locByKey(S.locKey);
+  el.textContent = `${l.phone} · shown on the printed summary`;
+}
+function applyLocation(key, {setElev = true} = {}){
+  S.locKey = key;
+  const l = locByKey(key);
+  if (setElev) { $('jElev').value = l.elev; S.elevSource = 'location'; }
+  $('jLoc').value = key;
+  setLocNote(); setElevNote();
+  const v = store.get()||{}; v.locKey = key; store.set(v);
+  refreshResultsOnly();
+}
+$('jLoc').addEventListener('change',e=>applyLocation(e.target.value));
 $('jSalesman').addEventListener('change',e=>{
   const other = e.target.value === '__other';
   $('jSalesmanOther').style.display = other ? '' : 'none';
-  if (other) $('jSalesmanOther').focus();
-  else { const v = store.get()||{}; v.salesman = e.target.value; store.set(v); }
+  if (other) { $('jSalesmanOther').focus(); return; }
+  const v = store.get()||{}; v.salesman = e.target.value; store.set(v);
+  const p = SALESMEN.find(x=>x.name===e.target.value);
+  if (p && p.loc) applyLocation(p.loc);
 });
 
 function fillDefaultTempBands(){
@@ -1290,9 +1344,9 @@ function fillDefaultTempBands(){
 // seed site-condition inputs from the Adams market defaults; loadDealer()
 // overrides these if this device has its own saved defaults
 $('jDefElev').value = S.defaults.elev;
-$('jElev').value = S.defaults.elev; S.elevSource = 'default';
+$('jElev').value = locByKey(S.locKey).elev; S.elevSource = 'location';
 fillTempBands(); fillDefaultTempBands();
-loadDealer(); fillSalesmen();
+loadDealer(); fillSalesmen(); fillLocations();
 fillCustBrands(); fillTempBands(); fillDefaultTempBands(); setElevNote();
 applyLogo();
 refresh();
