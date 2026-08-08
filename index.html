@@ -208,7 +208,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   <div class="toolbar">
     <button class="btn ghost" id="modeBtn">Expert Mode</button>
     <button class="btn ghost" id="resetBtn">Reset</button>
-    <button class="btn primary" id="printBtn">Print summary</button>
+    <button class="btn primary" id="printBtn">Print Summary</button>
   </div>
 </header>
 
@@ -336,7 +336,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 
     <div class="card" id="custPanel" style="margin-top:14px">
       <div style="font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:2px">CUSTOMER SUMMARY
-        <span style="font-weight:400;color:var(--ink-3)">— you choose what the homeowner sees. Internal flags and alternates never print on this copy.</span></div>
+        <span style="font-weight:400;color:var(--ink-3)">— you choose what the homeowner sees. Internal flags and alternates never print.</span></div>
       <div class="custrow">
         <span class="custlbl">Show options:</span>
         <label class="chip"><input type="checkbox" class="custScen" value="whole" checked> Whole house</label>
@@ -361,8 +361,8 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         <label class="chip"><input type="checkbox" class="custInc" value="basis" checked> Basis of sizing</label>
       </div>
       <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn primary" id="custPrintBtn">Print for Customer</button>
-        <span style="font-size:11px;color:var(--ink-3)">Plain-English explanation alongside every number. “Print summary” up top stays the full internal sheet.</span>
+        <button class="btn primary" id="custPrintBtn">Print Summary</button>
+        <span style="font-size:11px;color:var(--ink-3)">Same sheet as “Print Summary” up top — the homeowner copy. Everything above controls what appears on it.</span>
       </div>
     </div>
   </section>
@@ -1321,7 +1321,7 @@ $('modeBtn').addEventListener('click',()=>{
   refresh();
 });
 $('resetBtn').addEventListener('click',()=>location.reload());
-$('printBtn').addEventListener('click',()=>{renderResults();renderPrint();window.print();});
+$('printBtn').addEventListener('click',()=>{renderResults();renderCustomerPrint();window.print();});
 $('custPrintBtn').addEventListener('click',()=>{renderResults();renderCustomerPrint();window.print();});
 document.querySelectorAll('.custScen').forEach(cb=>cb.addEventListener('change',e=>{
   S.cust.scen[e.target.value]=e.target.checked; saveDealer();
