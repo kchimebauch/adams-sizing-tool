@@ -128,7 +128,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .cust-plain{font-size:11px;color:#333;line-height:1.42;margin-top:3px}
   #printSheet .cust-h{font-size:12px;font-weight:700;color:#0f3260;margin:9px 0 2px}
   /* ---- consumer summary ---- */
-  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:10px 15px;margin-bottom:7px;break-inside:avoid}
+  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:9px 14px;margin-bottom:6px;break-inside:avoid}
   #printSheet .c-eyebrow{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#c8102e;font-weight:800}
   #printSheet .c-model{font-size:21px;font-weight:800;color:#0f3260;line-height:1.12;margin-top:2px}
   #printSheet .c-why{font-size:11.5px;color:#222;margin-top:5px;line-height:1.5}
@@ -149,6 +149,14 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-optbar{height:7px;border-radius:4px;background:#e6eaf0;margin-top:8px;overflow:hidden}
   #printSheet .c-optbar i{display:block;height:100%;background:#0f3260;border-radius:4px}
   #printSheet .c-optl{font-size:9.5px;color:#555;margin-top:4px;line-height:1.35}
+  #printSheet .c-two{display:flex;gap:11px;align-items:stretch;margin-top:4px}
+  #printSheet .c-two>.a{flex:1.15}
+  #printSheet .c-two>.b{flex:1}
+  #printSheet .c-inc{border:1.5px solid #0f3260;border-radius:8px;padding:6px 10px;height:100%}
+  #printSheet .c-inch{font-size:9px;text-transform:uppercase;letter-spacing:.9px;font-weight:800;color:#c8102e;margin-bottom:4px}
+  #printSheet .c-incl{font-size:10px;line-height:1.42;margin-bottom:3px;padding-left:12px;text-indent:-12px}
+  #printSheet .c-incl b{color:#0f3260}
+  #printSheet .c-inct{color:#c8102e;font-weight:800;margin-right:4px}
   #printSheet .c-add{break-before:page;page-break-before:always;padding-top:2px}
   #printSheet .c-addh{border-bottom:2.5px solid #0f3260;padding-bottom:5px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
   #printSheet .c-addh h2{font-size:16px;font-weight:800;color:#0f3260;letter-spacing:.2px}
@@ -163,14 +171,14 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-note{font-size:9px;color:#555;line-height:1.4;margin-top:2px}
   #printSheet .c-tech{font-size:9.5px;color:#666;line-height:1.4;margin-top:4px}
   #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:5px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
-  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.4;margin-top:1px}
+  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:10.5px;line-height:1.38;margin-top:1px}
   #printSheet .c-grid div{break-inside:avoid}
   #printSheet .c-tick{color:#0f3260;font-weight:800;margin-right:5px}
-  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
+  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:5px 10px;margin-top:3px;break-inside:avoid}
   #printSheet .c-alt b{color:#0f3260}
-  #printSheet .c-body{font-size:11px;color:#333;line-height:1.44;margin-top:2px}
+  #printSheet .c-body{font-size:10.5px;color:#333;line-height:1.4;margin-top:2px}
   #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
-  #printSheet .c-step{font-size:10.5px;line-height:1.4;margin-bottom:2px}
+  #printSheet .c-step{font-size:10px;line-height:1.38;margin-bottom:2px}
   #printSheet .c-stepn{display:inline-block;width:17px;height:17px;border-radius:9px;background:#c8102e;color:#fff;
       font-size:10px;font-weight:800;text-align:center;line-height:17px;margin-right:7px}
   #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:6px;padding-top:5px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
@@ -1166,8 +1174,8 @@ function renderCustomerPrint(){
   const notes = [];
   if (inc.surge && ac) notes.push(`<b>Your air conditioner is the hardest thing to start.</b> For the instant its
     compressor kicks on, your ${ac.tons}-ton unit pulls roughly <b>${fkw(ac.lra*240/1000)} kW</b> — several times its
-    running draw. The generator has to absorb that without stalling or dimming your lights, and that momentary surge is
-    often what decides the size rather than everyday use.`);
+    running draw. The generator has to absorb that without stalling or dimming your lights, and that surge often decides
+    the size rather than everyday use.`);
   if (inc.soft && softOn && ac) notes.push(`<b>A soft starter on the air conditioner</b> cuts that startup surge by
     roughly ${Math.round((1-SOFT_START_MULT)*100)}% — from ${fkw(ac.lra*240/1000)} kW down to
     ${fkw(ac.lra*240*SOFT_START_MULT/1000)} kW. It is a small addition to your A/C, and on a home like yours it is
@@ -1178,8 +1186,8 @@ function renderCustomerPrint(){
     if (S.fuel==='NG'){
       const tot = Math.round(f.btu/1000) + (S.gas.furnace+S.gas.wh+S.gas.range+S.gas.dryer+S.gas.other);
       notes.push(`<b>Natural gas.</b> You will never refuel it. At full load this unit draws about
-        ${fmt(Math.round(f.btu/1000))},000 BTU/hr; with your existing appliances that is roughly ${fmt(tot)},000 BTU/hr
-        against a meter rated near ${fmt(S.gas.meter)},000. ${tot > S.gas.meter
+        ${fmt(Math.round(f.btu/1000))},000 BTU/hr, which with your existing appliances totals about ${fmt(tot)},000 against
+        a meter rated near ${fmt(S.gas.meter)},000. ${tot > S.gas.meter
           ? 'Your meter will most likely need upsizing. We file that request with the utility on your behalf, but the utility sets the terms — and in many cases the cost of the upgrade falls to the homeowner. We will tell you what it is before you commit to anything.'
           : 'Your existing meter looks adequate; we confirm line size and pressure at the site visit.'}`);
     } else {
@@ -1197,20 +1205,31 @@ function renderCustomerPrint(){
   if (inc.basis) {
     parts.push(`<div class="c-sec">How we arrived at this size</div>
       <div class="c-body">We counted every load in your home individually — not a square-footage rule of thumb — then ran the
-      <b>NEC Article 220.83(B) optional load calculation</b>, the same method a licensed electrician performs for a
-      service upgrade, and checked your hardest-starting motor against the generator's starting capability.</div>
-      <div class="c-tech">Technical basis: lighting and receptacles at ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus
-      ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA, 40% on the remainder;
-      larger of heating or cooling at 100%.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F design temperature.`:''}
-      Running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output. Full worksheet on request.</div>`);
+      <b>NEC Article 220.83(B) optional load calculation</b>, the same method a licensed electrician performs for a service upgrade.</div>
+      ${inc.addendum
+        ? `<div class="c-tech">${deratePct()>0?`Ratings were derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F summer design temperature. `:''}The full load-calculation worksheet is on page 2.</div>`
+        : `<div class="c-tech">Technical basis: lighting and receptacles at ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus
+           ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA, 40% on the remainder;
+           larger of heating or cooling at 100%.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F design temperature.`:''}
+           Running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output. Full worksheet on request.</div>`}`);
   }
 
   /* ---------- next steps ---------- */
   parts.push(`<div style="break-inside:avoid"><div class="c-sec">What happens next</div>
-    <div class="c-card">
-      <div class="c-step"><span class="c-stepn">1</span><b>Review this alongside your estimate.</b> We built this report while walking your home. Your estimate prices the work.</div>
-      <div class="c-step"><span class="c-stepn">2</span><b>Pick your equipment.</b> Anything shown here is sized correctly — the choice is price, warranty and sound level. Ask ${salesmanName()} about the trade-offs.</div>
-      <div class="c-step"><span class="c-stepn">3</span><b>We take it from there.</b> Permits, utility paperwork, gas and electrical, installation — then we start the system and test it with you.</div>
+    <div class="c-two">
+      <div class="a"><div class="c-card" style="margin-top:0;height:100%">
+        <div class="c-step"><span class="c-stepn">1</span><b>Review this alongside your estimate.</b> We built this report while walking your home. Your estimate prices the work.</div>
+        <div class="c-step"><span class="c-stepn">2</span><b>Pick your equipment.</b> Anything shown here is sized correctly — the choice is price, warranty and sound level. Ask ${salesmanName()} about the trade-offs.</div>
+        <div class="c-step"><span class="c-stepn">3</span><b>We take it from there.</b> Permits, gas and electrical, installation — then we start the system and test it with you.</div>
+      </div></div>
+      <div class="b"><div class="c-inc">
+        <div class="c-inch">Every Adams installation includes</div>
+        <div class="c-incl"><span class="c-inct">&#10003;</span><b>A Project Support Team Member</b> assigned to you from start to finish</div>
+        <div class="c-incl"><span class="c-inct">&#10003;</span><b>All permitting handled by us</b> — municipal and utility</div>
+        <div class="c-incl"><span class="c-inct">&#10003;</span><b>Every trade in house.</b> Electrical, gas and concrete are ours — we do not subcontract</div>
+        <div class="c-incl"><span class="c-inct">&#10003;</span><b>Licensed, certified and registered</b> tradesmen on your property</div>
+        <div class="c-incl" style="margin-bottom:0"><span class="c-inct">&#10003;</span><b>Commissioning and startup</b> — we run the system and walk you through it before we leave</div>
+      </div></div>
     </div></div>`);
 
   parts.push(`<div class="c-sig">
@@ -1220,8 +1239,7 @@ function renderCustomerPrint(){
         <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr}<br>${ADAMS.web}</div>
     </div>`);
 
-  parts.push(`<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against
-    current spec sheets before order. This is a sizing recommendation, not a quote.${inc.addendum?' The full load-calculation worksheet follows on page 2.':''}</div>`);
+  parts.push(`<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against current spec sheets before order. This is a sizing recommendation, not a quote.</div>`);
 
   /* ---------- page 2: technical addendum ---------- */
   if (inc.addendum) {
