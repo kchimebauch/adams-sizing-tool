@@ -149,6 +149,14 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-optbar{height:7px;border-radius:4px;background:#e6eaf0;margin-top:8px;overflow:hidden}
   #printSheet .c-optbar i{display:block;height:100%;background:#0f3260;border-radius:4px}
   #printSheet .c-optl{font-size:9.5px;color:#555;margin-top:4px;line-height:1.35}
+  .pickopt{border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;
+      line-height:1.35;background:#fff;display:flex;gap:7px;align-items:flex-start;min-width:150px}
+  .pickopt:hover{border-color:#9aa7b8}
+  .pickopt.on{border-color:var(--navy);border-width:2px;padding:5px 9px;background:#f5f8fc}
+  .pickopt input{margin-top:2px;flex:none}
+  .pickopt b{display:block;color:var(--navy)}
+  .pickopt .pl{color:var(--ink-3);font-size:11px}
+  .pickopt .auto{color:var(--ink-3);font-size:10.5px;font-style:italic}
   #printSheet .c-two{display:flex;gap:11px;align-items:stretch;margin-top:4px}
   #printSheet .c-two>.a{flex:1.15}
   #printSheet .c-two>.b{flex:1}
@@ -367,6 +375,10 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         <span class="custlbl">Equipment:</span>
         <label class="chip"><input type="radio" name="custLayout" value="lead" checked> Lead with one recommendation</label>
         <label class="chip"><input type="radio" name="custLayout" value="equal"> Present all as equal options</label>
+      </div>
+      <div class="custrow" id="pickRow" style="align-items:flex-start">
+        <span class="custlbl" style="padding-top:5px">Recommend:</span>
+        <div id="pickOpts" style="display:flex;gap:7px;flex-wrap:wrap;flex:1"></div>
       </div>
       <div class="custrow">
         <span class="custlbl">Brands:</span>
@@ -646,6 +658,7 @@ const S = {
   defaults:{ elev:1050, ambF:90 },   // fallback if no branch is selected
   locKey:'elkhorn',                  // selected Adams branch — drives elevation + printed contact info
   cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all', layout:'lead',
+         pick:null,
          inc:{outage:true, surge:true, soft:true, fuel:true, basis:true, addendum:true} },
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
   // gas service check — existing appliance INPUT ratings in kBTU/hr
@@ -1032,6 +1045,18 @@ function custSpoken(nm){
   if (/^electric /i.test(c))      return 'your ' + c.replace(/^Electric /i,'electric ').replace(/\s*\(.*\)/,'').toLowerCase();
   return 'your ' + c.replace(/\s*\(.*\)/,'').toLowerCase();
 }
+const pickKey = m => m.brand+'|'+m.model;
+// smallest unit that fits — the default the tool proposes
+function autoPick(fits){ return fits.slice().sort((a,b)=>a.rated-b.rated)[0]; }
+// the unit the estimator chose, falling back to auto if that unit no longer fits
+function leadUnit(fits){
+  if (!fits.length) return null;
+  if (S.cust.pick){
+    const hit = fits.find(m=>pickKey(m)===S.cust.pick);
+    if (hit) return hit;
+  }
+  return autoPick(fits);
+}
 function custFits(r){
   if (S.noOem) return [];
   let m = pickModels(r.requiredKW,r.runningKW,r.peakKW,S.fuel,r.shedGuardKW).filter(x=>x.rated);
@@ -1074,7 +1099,7 @@ function renderCustomerPrint(){
 
   const main  = chosen[0];
   const fits  = custFits(main);
-  const best  = fits.slice().sort((a,b)=>a.rated-b.rated)[0];
+  const best  = leadUnit(fits);
   const others= fits.filter(m=>m!==best);
   const smaller = chosen.find(x=>x.scenario==='essential' && x!==main);
   const parts = [];
@@ -1096,7 +1121,8 @@ function renderCustomerPrint(){
   if (equal) {
     parts.push(`<div class="c-eyebrow" style="margin-bottom:5px">Equipment options for your home &mdash;
       ${coverageLine(main.scenario).toLowerCase()} on ${S.fuel==='NG'?'natural gas':'propane'}</div>`);
-    parts.push(`<div class="c-opts">${fits.slice(0,3).map(m=>{
+    const ordered = best ? [best, ...fits.filter(m=>m!==best)] : fits;
+    parts.push(`<div class="c-opts">${ordered.slice(0,3).map(m=>{
       const pc = Math.round(m.pct*100);
       return `<div class="c-opt">
         <div class="c-optbrand">${m.brand}<br>${m.model}</div>
@@ -1431,11 +1457,13 @@ function updateVisibility(){
 
 function refreshResultsOnly(){
   if (S.expert || S.step===5) renderResults();
+  fillPicker();
 }
 function refresh(){
   renderStepnav(); renderAcs(); renderPumps(); renderGen(); renderOther();
   updateVisibility();
   if (S.expert || S.step===5) renderResults();
+  fillPicker();
 }
 
 /* ---------- events ---------- */
@@ -1449,12 +1477,12 @@ $('resetBtn').addEventListener('click',()=>location.reload());
 $('printBtn').addEventListener('click',()=>{renderResults();renderCustomerPrint();window.print();});
 $('custPrintBtn').addEventListener('click',()=>{renderResults();renderCustomerPrint();window.print();});
 document.querySelectorAll('.custScen').forEach(cb=>cb.addEventListener('change',e=>{
-  S.cust.scen[e.target.value]=e.target.checked; saveDealer();
+  S.cust.scen[e.target.value]=e.target.checked; saveDealer(); fillPicker();
 }));
 document.querySelectorAll('.custInc').forEach(cb=>cb.addEventListener('change',e=>{
   S.cust.inc[e.target.value]=e.target.checked; saveDealer();
 }));
-$('custBrand').addEventListener('change',e=>{S.cust.brand=e.target.value; saveDealer();});
+$('custBrand').addEventListener('change',e=>{S.cust.brand=e.target.value; S.cust.pick=null; saveDealer(); fillPicker();});
 document.querySelectorAll('input[name="custLayout"]').forEach(r=>r.addEventListener('change',e=>{
   if(!e.target.checked) return; S.cust.layout = e.target.value; saveDealer();
 }));
@@ -1504,6 +1532,30 @@ $('geoBtn').addEventListener('click',()=>{
                                     : 'Could not get location \u2014 enter elevation manually.';
   }, {enableHighAccuracy:false, timeout:10000, maximumAge:600000});
 });
+function fillPicker(){
+  const row=$('pickRow'), box=$('pickOpts');
+  if(!row||!box) return;
+  if(!lastResults){ row.style.display='none'; return; }
+  const order={whole:0,managed:1,essential:2};
+  let chosen=lastResults.filter(x=>S.cust.scen[x.scenario]).sort((a,b)=>order[a.scenario]-order[b.scenario]);
+  if(!chosen.length) chosen=lastResults.slice(0,1);
+  const fits=custFits(chosen[0]);
+  if(fits.length<2){ row.style.display='none'; box.innerHTML=''; return; }
+  row.style.display='';
+  // drop a stale pick so the highlight never lies about what will print
+  if(S.cust.pick && !fits.some(m=>pickKey(m)===S.cust.pick)) S.cust.pick=null;
+  const auto=autoPick(fits), lead=leadUnit(fits);
+  box.innerHTML=fits.map(m=>{
+    const k=pickKey(m), pc=Math.round(m.pct*100), on=(m===lead);
+    return `<label class="pickopt${on?' on':''}">
+      <input type="radio" name="custPick" value="${k}"${on?' checked':''}>
+      <span><b>${m.brand} ${m.model}</b>
+        <span class="pl">${fkw(m.rated)} kW &middot; ${pc}% loaded &middot; ${Math.max(0,100-pc)}% reserve</span>
+        ${m===auto?'<span class="auto">smallest that fits</span>':''}</span></label>`;}).join('');
+  box.querySelectorAll('input[name="custPick"]').forEach(r=>r.addEventListener('change',e=>{
+    S.cust.pick=e.target.value; saveDealer(); fillPicker();
+  }));
+}
 function fillCustBrands(){
   const sel=$('custBrand'); const cur=S.cust.brand;
   sel.innerHTML='<option value="all">All brands shown</option>'+
@@ -1544,6 +1596,7 @@ function loadDealer(){
     $('jElev').value = locByKey(v.locKey).elev; S.elevSource = 'location';
   }
   if (v.cust) { S.cust = Object.assign(S.cust, v.cust);
+    S.cust.pick = null;   // per-job choice; must not carry over to the next customer
     document.querySelectorAll('.custScen').forEach(cb=>cb.checked = !!S.cust.scen[cb.value]);
     document.querySelectorAll('.custInc').forEach(cb=>cb.checked = !!S.cust.inc[cb.value]);
     const lr = document.querySelector(`input[name="custLayout"][value="${S.cust.layout||'lead'}"]`); if (lr) lr.checked = true; }
