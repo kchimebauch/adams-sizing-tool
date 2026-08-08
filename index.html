@@ -141,19 +141,27 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-spec:last-child{border-right:none;padding-right:0}
   #printSheet .c-specv{font-size:13.5px;font-weight:800;color:#0f3260;line-height:1.2}
   #printSheet .c-speck{font-size:8.5px;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;font-weight:700;margin-top:2px}
+  #printSheet .c-opts{display:flex;gap:9px;margin-bottom:8px}
+  #printSheet .c-opt{flex:1;border:1.5px solid #0f3260;border-radius:10px;padding:10px 12px;break-inside:avoid}
+  #printSheet .c-optbrand{font-size:14.5px;font-weight:800;color:#0f3260;line-height:1.2;min-height:34px}
+  #printSheet .c-optkw{font-size:20px;font-weight:800;color:#c8102e;margin-top:4px;line-height:1.1}
+  #printSheet .c-optkwl{font-size:8.5px;text-transform:uppercase;letter-spacing:.7px;color:#6b7280;font-weight:700}
+  #printSheet .c-optbar{height:7px;border-radius:4px;background:#e6eaf0;margin-top:8px;overflow:hidden}
+  #printSheet .c-optbar i{display:block;height:100%;background:#0f3260;border-radius:4px}
+  #printSheet .c-optl{font-size:9.5px;color:#555;margin-top:4px;line-height:1.35}
   #printSheet .c-tech{font-size:9.5px;color:#666;line-height:1.4;margin-top:4px}
-  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:6px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
+  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:5px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
   #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.4;margin-top:1px}
   #printSheet .c-grid div{break-inside:avoid}
   #printSheet .c-tick{color:#0f3260;font-weight:800;margin-right:5px}
   #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
   #printSheet .c-alt b{color:#0f3260}
   #printSheet .c-body{font-size:11px;color:#333;line-height:1.44;margin-top:2px}
-  #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:7px 12px;margin-top:4px;break-inside:avoid}
-  #printSheet .c-step{font-size:10.5px;line-height:1.45;margin-bottom:3px}
+  #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
+  #printSheet .c-step{font-size:10.5px;line-height:1.4;margin-bottom:2px}
   #printSheet .c-stepn{display:inline-block;width:17px;height:17px;border-radius:9px;background:#c8102e;color:#fff;
       font-size:10px;font-weight:800;text-align:center;line-height:17px;margin-right:7px}
-  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:7px;padding-top:6px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
+  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:6px;padding-top:5px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
   .mgdrow{align-items:center;gap:8px}
   .mgdrow .pill{font-size:9.5px;white-space:nowrap}
   .modebadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
@@ -184,7 +192,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     #printSheet .opt h3{font-size:13px}
     #printSheet .opt .big{font-size:20px;font-weight:800}
     #printSheet .rec{border:2px solid #1a2332}
-    #printSheet .foot{margin-top:14px;font-size:10px;color:#666;line-height:1.45;break-inside:avoid}
+    #printSheet .foot{margin-top:14px;font-size:9.5px;color:#666;line-height:1.35;break-inside:avoid}
   }
 </style>
 </head>
@@ -334,6 +342,11 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         <label class="chip"><input type="checkbox" class="custScen" value="whole" checked> Whole house</label>
         <label class="chip"><input type="checkbox" class="custScen" value="managed" checked> + Load management</label>
         <label class="chip"><input type="checkbox" class="custScen" value="essential"> Essentials only</label>
+      </div>
+      <div class="custrow">
+        <span class="custlbl">Equipment:</span>
+        <label class="chip"><input type="radio" name="custLayout" value="lead" checked> Lead with one recommendation</label>
+        <label class="chip"><input type="radio" name="custLayout" value="equal"> Present all as equal options</label>
       </div>
       <div class="custrow">
         <span class="custlbl">Brands:</span>
@@ -611,7 +624,7 @@ const S = {
   mgmtMode:'carry',   // 'carry' = set runs its largest shed load · 'shed' = shed loads excluded
   defaults:{ elev:1050, ambF:90 },   // fallback if no branch is selected
   locKey:'elkhorn',                  // selected Adams branch — drives elevation + printed contact info
-  cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all',
+  cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all', layout:'lead',
          inc:{outage:true, surge:true, soft:true, fuel:true, basis:true} },
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
   // gas service check — existing appliance INPUT ratings in kBTU/hr
@@ -1056,8 +1069,34 @@ function renderCustomerPrint(){
         Prepared by <b>${salesmanName()}</b><br>Adams ${L.name}</div>
     </div>`);
 
+  const equal = (S.cust.layout === 'equal') && fits.length > 1;
+
+  /* ---------- all options presented equally ---------- */
+  if (equal) {
+    parts.push(`<div class="c-eyebrow" style="margin-bottom:5px">Equipment options for your home &mdash;
+      ${coverageLine(main.scenario).toLowerCase()} on ${S.fuel==='NG'?'natural gas':'propane'}</div>`);
+    parts.push(`<div class="c-opts">${fits.slice(0,3).map(m=>{
+      const pc = Math.round(m.pct*100);
+      return `<div class="c-opt">
+        <div class="c-optbrand">${m.brand}<br>${m.model}</div>
+        <div class="c-optkw">${fkw(m.rated)} kW</div>
+        <div class="c-optkwl">Rated on ${S.fuel==='NG'?'natural gas':'LP'}</div>
+        <div class="c-optbar"><i style="width:${Math.min(100,pc)}%"></i></div>
+        <div class="c-optl"><b>${pc}%</b> of capacity with your load<br>about <b>${Math.max(0,100-pc)}%</b> held in reserve</div>
+      </div>`;}).join('')}</div>`);
+    parts.push(`<div class="c-specs" style="border-top:none;margin-top:0;padding-top:0">
+        <div class="c-spec"><div class="c-specv">${fkw(main.requiredKW)} kW</div><div class="c-speck">Capacity required</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(main.runningKW)} kW</div><div class="c-speck">Running load</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(main.peakKW)} kW</div><div class="c-speck">Starting surge</div></div>
+        <div class="c-spec"><div class="c-specv">${fkw(S.elev)} ft</div><div class="c-speck">Site elevation</div></div>
+      </div>`);
+    parts.push(`<div class="c-body" style="margin-top:6px">All three are sized correctly for this home &mdash; any one of them
+      carries your load with room to spare. The differences come down to price, warranty, sound level and
+      availability, which your estimate covers.</div>`);
+  }
+
   /* ---------- hero recommendation ---------- */
-  if (best) {
+  if (!equal && best) {
     const pct = Math.round(best.pct*100);
     parts.push(`<div class="c-hero">
       <div class="c-eyebrow">Our recommendation for your home</div>
@@ -1074,7 +1113,7 @@ function renderCustomerPrint(){
         <div class="c-spec"><div class="c-specv">${fkw(best.rated)} kW</div><div class="c-speck">Rated on ${S.fuel==='NG'?'natural gas':'LP'}</div></div>
       </div>
     </div>`);
-  } else if (S.noOem) {
+  } else if (!equal && S.noOem) {
     parts.push(`<div class="c-hero">
       <div class="c-eyebrow">Our recommendation for your home</div>
       <div class="c-model">${fkw(main.requiredKW)} kW standby generator</div>
@@ -1088,16 +1127,15 @@ function renderCustomerPrint(){
     parts.push(`<div class="c-sec">What keeps running when the power goes out</div>
       <div class="c-grid">${items.map(t=>`<div><span class="c-tick">✓</span>${t}</div>`).join('')}</div>`);
     if (main.scenario!=='essential') {
-      parts.push(`<div class="c-body" style="margin-top:7px">All of it runs at once. The generator starts itself within seconds of an outage and shuts down when utility power returns — nothing for you to switch or reset.</div>`);
+      parts.push(`<div class="c-body" style="margin-top:7px">All of it runs at once. The generator starts itself within seconds of an outage and shuts down when power returns.</div>`);
     }
   }
 
   /* ---------- other equipment that fits ---------- */
-  if (others.length) {
+  if (!equal && others.length) {
     parts.push(`<div class="c-sec">Other equipment that fits your home</div>`);
-    parts.push(others.map(m=>`<div class="c-alt"><b>${m.brand} ${m.model}</b> — ${fkw(m.rated)} kW rated on
-      ${S.fuel==='NG'?'natural gas':'LP'}; runs at ${Math.round(m.pct*100)}% of capacity with your load,
-      about ${Math.max(0,100-Math.round(m.pct*100))}% held in reserve.</div>`).join(''));
+    parts.push(others.map(m=>`<div class="c-alt"><b>${m.brand} ${m.model}</b> — ${fkw(m.rated)} kW rated; runs at
+      ${Math.round(m.pct*100)}% of capacity with your load, about ${Math.max(0,100-Math.round(m.pct*100))}% held in reserve.</div>`).join(''));
   }
 
   /* ---------- smaller option ---------- */
@@ -1121,18 +1159,19 @@ function renderCustomerPrint(){
     roughly ${Math.round((1-SOFT_START_MULT)*100)}% — from ${fkw(ac.lra*240/1000)} kW down to
     ${fkw(ac.lra*240*SOFT_START_MULT/1000)} kW. It is a small addition to your A/C, and on a home like yours it is
     frequently the difference between one generator size and the next.`);
-  if (inc.fuel && best) {
-    const f = fuelDraw(best.rated);
+  const ref = best || fits[0];
+  if (inc.fuel && ref) {
+    const f = fuelDraw(ref.rated);
     if (S.fuel==='NG'){
       const tot = Math.round(f.btu/1000) + (S.gas.furnace+S.gas.wh+S.gas.range+S.gas.dryer+S.gas.other);
       notes.push(`<b>Natural gas.</b> You will never refuel it. At full load this unit draws about
         ${fmt(Math.round(f.btu/1000))},000 BTU/hr; with your existing appliances that is roughly ${fmt(tot)},000 BTU/hr
         against a meter rated near ${fmt(S.gas.meter)},000. ${tot > S.gas.meter
-          ? 'Your meter will most likely need upsizing — usually no cost or low cost, and we file that request with the utility.'
+          ? 'Your meter will most likely need upsizing. We file that request with the utility on your behalf, but the utility sets the terms — and in many cases the cost of the upgrade falls to the homeowner. We will tell you what it is before you commit to anything.'
           : 'Your existing meter looks adequate; we confirm line size and pressure at the site visit.'}`);
     } else {
       notes.push(`<b>Propane.</b> At about ${f.gal.toFixed(1)} gallons an hour under full load, a typical three-day
-        outage uses near ${Math.round(f.gal*0.55*72)} gallons. We recommend a ${best.rated<=14?'250':'500'}-gallon tank
+        outage uses near ${Math.round(f.gal*0.55*72)} gallons. We recommend a ${ref.rated<=14?'250':'500'}-gallon tank
         so you are not watching the gauge, and we confirm cold-weather capacity at the site visit.`);
     }
   }
@@ -1148,7 +1187,7 @@ function renderCustomerPrint(){
       <b>NEC Article 220.83(B) optional load calculation</b>, the same method a licensed electrician performs for a
       service upgrade, and checked your hardest-starting motor against the generator's starting capability.</div>
       <div class="c-tech">Technical basis: lighting and receptacles at ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus
-      ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA and 40% on the remainder;
+      ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA, 40% on the remainder;
       larger of heating or cooling at 100%.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F design temperature.`:''}
       Running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output. Full worksheet on request.</div>`);
   }
@@ -1156,9 +1195,9 @@ function renderCustomerPrint(){
   /* ---------- next steps ---------- */
   parts.push(`<div style="break-inside:avoid"><div class="c-sec">What happens next</div>
     <div class="c-card">
-      <div class="c-step"><span class="c-stepn">1</span>We walk the property together — placement, gas line, electrical panel and permitting.</div>
-      <div class="c-step"><span class="c-stepn">2</span>You get a firm, itemized quote with no surprises.</div>
-      <div class="c-step"><span class="c-stepn">3</span>We handle permits, utility paperwork and the install, then test the system with you.</div>
+      <div class="c-step"><span class="c-stepn">1</span><b>Review this alongside your estimate.</b> We built this report while walking your home. Your estimate prices the work.</div>
+      <div class="c-step"><span class="c-stepn">2</span><b>Pick your equipment.</b> Anything shown here is sized correctly — the choice is price, warranty and sound level. Ask ${salesmanName()} about the trade-offs.</div>
+      <div class="c-step"><span class="c-stepn">3</span><b>We take it from there.</b> Permits, utility paperwork, gas and electrical, installation — then we start the system and test it with you.</div>
     </div></div>`);
 
   parts.push(`<div class="c-sig">
@@ -1168,9 +1207,8 @@ function renderCustomerPrint(){
         <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr}<br>${ADAMS.web}</div>
     </div>`);
 
-  parts.push(`<div class="foot" style="margin-top:5px">Equipment ratings are published manufacturer figures, confirmed
-    against current spec sheets before order. Placement, gas sizing and permitting are verified at the site visit.
-    This is a sizing recommendation, not a quote.</div>`);
+  parts.push(`<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against
+    current spec sheets before order. This is a sizing recommendation, not a quote.</div>`);
 
   sheet.innerHTML = parts.join('');
 }
@@ -1292,6 +1330,9 @@ document.querySelectorAll('.custInc').forEach(cb=>cb.addEventListener('change',e
   S.cust.inc[e.target.value]=e.target.checked; saveDealer();
 }));
 $('custBrand').addEventListener('change',e=>{S.cust.brand=e.target.value; saveDealer();});
+document.querySelectorAll('input[name="custLayout"]').forEach(r=>r.addEventListener('change',e=>{
+  if(!e.target.checked) return; S.cust.layout = e.target.value; saveDealer();
+}));
 $('jDefElev').addEventListener('change',e=>{
   S.defaults.elev = Math.max(0,+e.target.value||0); saveDealer();
   if (S.elevSource==='default'){ $('jElev').value = S.defaults.elev; setElevNote(); refreshResultsOnly(); }
@@ -1379,7 +1420,8 @@ function loadDealer(){
   }
   if (v.cust) { S.cust = Object.assign(S.cust, v.cust);
     document.querySelectorAll('.custScen').forEach(cb=>cb.checked = !!S.cust.scen[cb.value]);
-    document.querySelectorAll('.custInc').forEach(cb=>cb.checked = !!S.cust.inc[cb.value]); }
+    document.querySelectorAll('.custInc').forEach(cb=>cb.checked = !!S.cust.inc[cb.value]);
+    const lr = document.querySelector(`input[name="custLayout"][value="${S.cust.layout||'lead'}"]`); if (lr) lr.checked = true; }
   if (v.meter) S.gas.meter = v.meter;
   document.querySelectorAll('.brandSel').forEach(cb=>cb.checked = !!S.brandSel[cb.value]);
   $('noOem').checked = S.noOem;
