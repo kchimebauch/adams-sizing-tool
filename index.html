@@ -149,6 +149,18 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-optbar{height:7px;border-radius:4px;background:#e6eaf0;margin-top:8px;overflow:hidden}
   #printSheet .c-optbar i{display:block;height:100%;background:#0f3260;border-radius:4px}
   #printSheet .c-optl{font-size:9.5px;color:#555;margin-top:4px;line-height:1.35}
+  #printSheet .c-add{break-before:page;page-break-before:always;padding-top:2px}
+  #printSheet .c-addh{border-bottom:2.5px solid #0f3260;padding-bottom:5px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+  #printSheet .c-addh h2{font-size:16px;font-weight:800;color:#0f3260;letter-spacing:.2px}
+  #printSheet .c-addsec{font-size:11px;font-weight:800;color:#0f3260;text-transform:uppercase;letter-spacing:.6px;margin:8px 0 3px}
+  #printSheet table.c-t{width:100%;border-collapse:collapse;font-size:10px;margin-top:2px}
+  #printSheet table.c-t th{text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;color:#555;
+      border-bottom:1.5px solid #999;padding:3px 5px;font-weight:800}
+  #printSheet table.c-t td{padding:2px 5px;border-bottom:1px solid #e4e8ee}
+  #printSheet table.c-t tr.tot td{font-weight:800;border-top:1.5px solid #999;border-bottom:none;background:#f4f6f9}
+  #printSheet .c-scen{border:1px solid #cfd6e0;border-radius:7px;padding:5px 9px;margin-top:4px;font-size:10px;line-height:1.4;break-inside:avoid}
+  #printSheet .c-scen b.t{color:#0f3260;font-size:11px}
+  #printSheet .c-note{font-size:9px;color:#555;line-height:1.4;margin-top:2px}
   #printSheet .c-tech{font-size:9.5px;color:#666;line-height:1.4;margin-top:4px}
   #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:5px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
   #printSheet .c-grid{column-count:2;column-gap:26px;font-size:11px;line-height:1.4;margin-top:1px}
@@ -359,6 +371,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         <label class="chip"><input type="checkbox" class="custInc" value="soft" checked> Soft starter</label>
         <label class="chip"><input type="checkbox" class="custInc" value="fuel" checked> Gas / LP check</label>
         <label class="chip"><input type="checkbox" class="custInc" value="basis" checked> Basis of sizing</label>
+        <label class="chip"><input type="checkbox" class="custInc" value="addendum" checked> Technical addendum (pg 2)</label>
       </div>
       <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn primary" id="custPrintBtn">Print Summary</button>
@@ -625,7 +638,7 @@ const S = {
   defaults:{ elev:1050, ambF:90 },   // fallback if no branch is selected
   locKey:'elkhorn',                  // selected Adams branch — drives elevation + printed contact info
   cust:{ scen:{whole:true, managed:true, essential:false}, brand:'all', layout:'lead',
-         inc:{outage:true, surge:true, soft:true, fuel:true, basis:true} },
+         inc:{outage:true, surge:true, soft:true, fuel:true, basis:true, addendum:true} },
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
   // gas service check — existing appliance INPUT ratings in kBTU/hr
   gas:{furnace:100, wh:40, range:0, dryer:0, other:0, meter:250},
@@ -1208,7 +1221,101 @@ function renderCustomerPrint(){
     </div>`);
 
   parts.push(`<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against
-    current spec sheets before order. This is a sizing recommendation, not a quote.</div>`);
+    current spec sheets before order. This is a sizing recommendation, not a quote.${inc.addendum?' The full load-calculation worksheet follows on page 2.':''}</div>`);
+
+  /* ---------- page 2: technical addendum ---------- */
+  if (inc.addendum) {
+    const genW = S.vaSqft*S.sqft + 1500*S.sac + 1500*S.laundry;
+    const totRun = genW + on.reduce((a,l)=>a+l.runW*l.qty,0);
+    const maxStart = on.reduce((a,l)=>Math.max(a, l.motor?l.startW:0), 0);
+
+    parts.push(`<div class="c-add">
+      <div class="c-addh">
+        <div><h2>Technical Addendum</h2>
+          <div class="muted" style="font-size:10.5px">Load calculation worksheet &middot; ${j('jCustomer')} &middot; ${j('jAddress')}</div></div>
+        <div class="muted" style="text-align:right;font-size:10px">${new Date().toLocaleDateString('en-US')}<br>
+          ${salesmanName()} &middot; Adams ${L.name}</div>
+      </div>`);
+
+    parts.push(`<div class="c-addsec">Loads counted &mdash; ${S.sqft.toLocaleString()} sq ft, ${S.fuel==='NG'?'natural gas':'propane'}</div>
+      <table class="c-t">
+        <tr><th>Load</th><th style="text-align:right">Running W</th><th style="text-align:right">Starting W</th>
+            <th style="text-align:center">Essential</th><th style="text-align:center">Managed</th></tr>
+        <tr><td>General lighting &amp; receptacles &mdash; ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus ${S.sac} kitchen circuits and laundry</td>
+            <td style="text-align:right">${fmt(genW)}</td><td style="text-align:right">&mdash;</td>
+            <td style="text-align:center">${S.generalEssential?'&#10003;':''}</td><td></td></tr>
+        ${on.map(l=>`<tr><td>${l.name}${l.qty>1?' &times;'+l.qty:''}</td>
+          <td style="text-align:right">${fmt(l.runW*l.qty)}</td>
+          <td style="text-align:right">${l.motor?fmt(l.startW):'&mdash;'}</td>
+          <td style="text-align:center">${l.essential?'&#10003;':''}</td>
+          <td style="text-align:center">${l.managed?'&#10003;':''}</td></tr>`).join('')}
+        <tr class="tot"><td>Connected total (before code demand factors)</td>
+          <td style="text-align:right">${fmt(totRun)}</td>
+          <td style="text-align:right">${maxStart?fmt(maxStart):'&mdash;'}</td><td></td><td></td></tr>
+      </table>
+      <div class="c-note">Starting watts shown for motor loads only; the largest single starting load governs the surge check, since motors are not assumed to start simultaneously.</div>`);
+
+    parts.push(`<div class="c-addsec">Sizing scenarios</div>`);
+    parts.push(lastResults.map(r=>{
+      const meta = SCEN_META[r.scenario];
+      let fitLine;
+      if (S.noOem){
+        const g = pickGeneric(r.runningKW, r.peakKW);
+        fitLine = g ? `${g} kW class standby unit` : 'above standard residential sizes — liquid-cooled or paralleled units required';
+      } else {
+        const f2 = pickModels(r.requiredKW,r.runningKW,r.peakKW,S.fuel,r.shedGuardKW).filter(m=>m.rated);
+        fitLine = f2.length ? f2.map(m=>`${m.brand} ${m.model} &mdash; ${fkw(m.rated)} kW, ${Math.round(m.pct*100)}% loaded`).join(' &middot; ')
+                            : 'no fit in the selected lineups — liquid-cooled or paralleled units required';
+      }
+      return `<div class="c-scen"><b class="t">${meta.title}${meta.rec?' — recommended':''}</b><br>
+        <b>${fkw(r.requiredKW)} kW</b> required &middot; running ${fkw(r.runningKW)} kW &middot; starting peak ${fkw(r.peakKW)} kW<br>
+        <span style="color:#555">${fitLine}</span></div>`;}).join(''));
+
+    parts.push(`<div class="c-addsec">${S.fuel==='LP'?'Propane supply':'Gas service check'}</div>`);
+    parts.push((()=>{
+      const kw = sizingBasisKW(lastResults);
+      if (S.fuel==='LP'){
+        const f2 = fuelDraw(kw);
+        return `<div style="font-size:10px;line-height:1.45">Full-load draw on a ${kw} kW unit: <b>${f2.gal.toFixed(1)} gal/hr</b>
+          (~${fmt(Math.round(f2.btu/1000))}k BTU/hr). A three-day outage at roughly half load consumes about
+          <b>${Math.round(f2.gal*0.55*72)} gallons</b>. Recommended minimum tank: <b>${kw<=14?'250':'500'} gallons</b>.
+          Tank vaporization capacity to be verified for winter operation.</div>`;
+      }
+      const t2 = gasTotals(kw);
+      const ok = t2.total <= (+S.gas.meter||0);
+      return `<table class="c-t" style="max-width:420px">
+        <tr><td>Generator at full load (${kw} kW)</td><td style="text-align:right">${fmt(t2.genBTU)}k BTU/hr</td></tr>
+        <tr><td>Existing gas appliances</td><td style="text-align:right">${fmt(t2.appl)}k BTU/hr</td></tr>
+        <tr class="tot"><td>Total demand</td><td style="text-align:right">${fmt(t2.total)}k BTU/hr</td></tr>
+        <tr><td>Meter capacity</td><td style="text-align:right">${fmt(+S.gas.meter||0)}k BTU/hr</td></tr>
+        <tr class="tot"><td>Result</td><td style="text-align:right;color:${ok?'#177245':'#b45309'}">${ok?'meter appears adequate':'meter or line upgrade likely'}</td></tr>
+      </table>
+      <div class="c-note">Meter capacity, line size and delivery pressure are confirmed with the utility. Where an upgrade is required the utility sets the terms, and the cost is frequently the homeowner's responsibility.</div>`;
+    })());
+
+    parts.push(`<div class="c-addsec">Method &amp; assumptions</div>
+      <div style="font-size:9.5px;color:#444;line-height:1.45">
+        <b>Load calculation:</b> NEC Article 220.83(B) optional method. General lighting and receptacle load at ${S.vaSqft} VA/sq ft
+        per NEC ${S.necVer}; ${S.sac} kitchen small-appliance circuits and one laundry circuit at 1,500 VA each, counted automatically;
+        a garbage disposal is included in the standard inclusions. Demand factors applied at 100% on the first 8 kVA and 40% on the
+        remainder. The larger of heating or cooling is taken at 100%.<br>
+        <b>Starting check:</b> the largest motor's locked-rotor draw is added to the running load and checked against
+        ${SURGE_FACTOR}&times; the unit's rating.<br>
+        <b>Loading policy:</b> running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output on the selected fuel.<br>
+        <b>Load management:</b> ${S.mgmtMode==='shed'
+          ? 'Size to Shed — managed loads are excluded from the continuous requirement, with a check that the set can still start and run its largest managed load.'
+          : 'Size to Carry — the set is sized to run its largest managed load at any time; the module staggers loads for comfort rather than to protect the generator.'}<br>
+        <b>Site derating:</b> ${deratePct()>0
+          ? `published ratings reduced <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}&deg;F summer design temperature
+             (${(DERATE_PER_KFT*100).toFixed(1)}% per 1,000 ft; ${(DERATE_PER_10F*100).toFixed(1)}% per 10&deg;F above ${DERATE_BASE_F}&deg;F).`
+          : 'not applied — ratings taken at the manufacturer test basis.'}<br>
+        <b>Ratings:</b> published manufacturer figures, confirmed against the current spec sheet before order.
+      </div>`);
+
+    parts.push(`<div class="foot" style="margin-top:7px">Adams &middot; ${L.addr} &middot; ${L.phone} &middot; ${ADAMS.web}
+      &middot; Prepared by ${salesmanName()}. This worksheet supports the recommendation on page 1. It is a sizing aid, not an engineering document.</div>`);
+    parts.push(`</div>`);
+  }
 
   sheet.innerHTML = parts.join('');
 }
