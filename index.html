@@ -128,7 +128,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .cust-plain{font-size:11px;color:#333;line-height:1.42;margin-top:3px}
   #printSheet .cust-h{font-size:12px;font-weight:700;color:#0f3260;margin:9px 0 2px}
   /* ---- consumer summary ---- */
-  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:9px 14px;margin-bottom:6px;break-inside:avoid}
+  #printSheet .c-hero{border:2px solid #0f3260;border-radius:11px;padding:8px 14px;margin-bottom:5px;break-inside:avoid}
   #printSheet .c-eyebrow{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#c8102e;font-weight:800}
   #printSheet .c-model{font-size:21px;font-weight:800;color:#0f3260;line-height:1.12;margin-top:2px}
   #printSheet .c-why{font-size:11.5px;color:#222;margin-top:5px;line-height:1.5}
@@ -160,9 +160,9 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-two{display:flex;gap:11px;align-items:stretch;margin-top:4px}
   #printSheet .c-two>.a{flex:1.15}
   #printSheet .c-two>.b{flex:1}
-  #printSheet .c-inc{border:1.5px solid #0f3260;border-radius:8px;padding:6px 10px;height:100%}
+  #printSheet .c-inc{border:1.5px solid #0f3260;border-radius:8px;padding:5px 10px;height:100%}
   #printSheet .c-inch{font-size:9px;text-transform:uppercase;letter-spacing:.9px;font-weight:800;color:#c8102e;margin-bottom:4px}
-  #printSheet .c-incl{font-size:10px;line-height:1.42;margin-bottom:3px;padding-left:12px;text-indent:-12px}
+  #printSheet .c-incl{font-size:10px;line-height:1.34;margin-bottom:2px;padding-left:12px;text-indent:-12px}
   #printSheet .c-incl b{color:#0f3260}
   #printSheet .c-inct{color:#c8102e;font-weight:800;margin-right:4px}
   #printSheet .c-add{break-before:page;page-break-before:always;padding-top:2px}
@@ -178,18 +178,18 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   #printSheet .c-scen b.t{color:#0f3260;font-size:11px}
   #printSheet .c-note{font-size:9px;color:#555;line-height:1.4;margin-top:2px}
   #printSheet .c-tech{font-size:9.5px;color:#666;line-height:1.4;margin-top:4px}
-  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:5px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
-  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:10.5px;line-height:1.38;margin-top:1px}
+  #printSheet .c-sec{font-size:12.5px;font-weight:800;color:#0f3260;margin:4px 0 2px;padding-bottom:3px;border-bottom:2.5px solid #c8102e;display:inline-block}
+  #printSheet .c-grid{column-count:2;column-gap:26px;font-size:10.5px;line-height:1.33;margin-top:1px}
   #printSheet .c-grid div{break-inside:avoid}
   #printSheet .c-tick{color:#0f3260;font-weight:800;margin-right:5px}
-  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:5px 10px;margin-top:3px;break-inside:avoid}
+  #printSheet .c-alt{border:1px solid #d9dde3;border-radius:8px;padding:5px 10px;margin-top:3px;font-size:10.5px;line-height:1.4;break-inside:avoid}
   #printSheet .c-alt b{color:#0f3260}
   #printSheet .c-body{font-size:10.5px;color:#333;line-height:1.4;margin-top:2px}
   #printSheet .c-card{background:#f4f6f9;border-radius:8px;padding:6px 11px;margin-top:4px;break-inside:avoid}
-  #printSheet .c-step{font-size:10px;line-height:1.38;margin-bottom:2px}
+  #printSheet .c-step{font-size:10px;line-height:1.32;margin-bottom:2px}
   #printSheet .c-stepn{display:inline-block;width:17px;height:17px;border-radius:9px;background:#c8102e;color:#fff;
       font-size:10px;font-weight:800;text-align:center;line-height:17px;margin-right:7px}
-  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:6px;padding-top:5px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
+  #printSheet .c-sig{border-top:2px solid #0f3260;margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;break-inside:avoid;page-break-inside:avoid}
   .mgdrow{align-items:center;gap:8px}
   .mgdrow .pill{font-size:9.5px;white-space:nowrap}
   .modebadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
@@ -1189,11 +1189,12 @@ function renderCustomerPrint(){
   if (smaller) {
     const sf = custFits(smaller).slice().sort((a,b)=>a.rated-b.rated)[0];
     const essList = on.filter(l=>l.essential).map(l=>custName(l.name)).join(', ');
-    parts.push(`<div class="c-sec">A smaller option</div>
-      <div class="c-alt">${sf?`<b>${sf.brand} ${sf.model}</b> — ${fkw(sf.rated)} kW rated,
+    parts.push(`<div class="c-alt" style="margin-top:6px">
+      <b style="color:#c8102e;font-size:9px;letter-spacing:.7px">A SMALLER OPTION</b> &nbsp;
+      ${sf?`<b>${sf.brand} ${sf.model}</b> — ${fkw(sf.rated)} kW rated,
       ${fkw(smaller.requiredKW)} kW required (${Math.round(sf.pct*100)}% loaded). `:''}
       Covers ${essList?essList.toLowerCase():'your essential circuits'}, plus lights and outlets.
-      Air conditioning and the large appliances are not backed up on this option.</div>`);
+      Air conditioning and the large appliances are not backed up.</div>`);
   }
 
   /* ---------- good to know ---------- */
@@ -1234,10 +1235,10 @@ function renderCustomerPrint(){
       <b>NEC Article 220.83(B) optional load calculation</b>, the same method a licensed electrician performs for a service upgrade.</div>
       ${inc.addendum
         ? `<div class="c-tech">${deratePct()>0?`Ratings were derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F summer design temperature. `:''}The full load-calculation worksheet is on page 2.</div>`
-        : `<div class="c-tech">Technical basis: lighting and receptacles at ${S.vaSqft} VA/sq ft per NEC ${S.necVer}, plus
-           ${S.sac} kitchen circuits and the laundry circuit; demand factors 100% on the first 8 kVA, 40% on the remainder;
-           larger of heating or cooling at 100%.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft elevation and ${S.ambientF}°F design temperature.`:''}
-           Running load held at or below ${Math.round(MAX_LOAD_PCT*100)}% of rated output. Full worksheet on request.</div>`}`);
+        : `<div class="c-tech">Technical basis: ${S.vaSqft} VA/sq ft per NEC ${S.necVer} plus ${S.sac} kitchen circuits and laundry;
+           demand factors 100% on the first 8 kVA, 40% after; larger of heating or cooling at 100%; running load held at or below
+           ${Math.round(MAX_LOAD_PCT*100)}% of rated output.${deratePct()>0?` Ratings derated <b>${deratePct()}%</b> for ${fmt(S.elev)} ft and ${S.ambientF}°F.`:''}
+           Full worksheet on request.</div>`}`);
   }
 
   /* ---------- next steps ---------- */
@@ -1258,14 +1259,16 @@ function renderCustomerPrint(){
       </div></div>
     </div></div>`);
 
-  parts.push(`<div class="c-sig">
-      <div style="font-size:12px;line-height:1.6"><b style="color:#0f3260">Questions? Call ${salesmanName()}</b><br>
+  parts.push(`<div style="break-inside:avoid;page-break-inside:avoid"><div class="c-sig">
+      <div style="font-size:11.5px;line-height:1.5"><b style="color:#0f3260">Questions? Call ${salesmanName()}</b><br>
         <span style="font-size:14px;font-weight:800;color:#c8102e">${L.phone}</span></div>
-      <div style="text-align:right;font-size:10.5px;color:#555;line-height:1.55">
-        <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr}<br>${ADAMS.web}</div>
+      <div style="text-align:right;font-size:10.5px;color:#555;line-height:1.5">
+        <b style="color:#0f3260;font-size:11.5px">Adams — ${L.name}</b><br>${L.addr} &nbsp;·&nbsp; ${ADAMS.web}</div>
+    </div>
+    ${inc.addendum
+      ? `<div class="foot" style="margin-top:4px">This is a sizing recommendation, not a quote.</div>`
+      : `<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against current spec sheets before order. This is a sizing recommendation, not a quote.</div>`}
     </div>`);
-
-  parts.push(`<div class="foot" style="margin-top:4px">Ratings are published manufacturer figures, confirmed against current spec sheets before order. This is a sizing recommendation, not a quote.</div>`);
 
   /* ---------- page 2: technical addendum ---------- */
   if (inc.addendum) {
@@ -1300,7 +1303,9 @@ function renderCustomerPrint(){
       <div class="c-note">Starting watts shown for motor loads only; the largest single starting load governs the surge check, since motors are not assumed to start simultaneously.</div>`);
 
     parts.push(`<div class="c-addsec">Sizing scenarios</div>`);
-    parts.push(lastResults.map(r=>{
+    // only the scenarios the estimator chose to show — page 2 must not reintroduce
+    // an option that was deliberately kept off page 1
+    parts.push(chosen.map(r=>{
       const meta = SCEN_META[r.scenario];
       let fitLine;
       if (S.noOem){
