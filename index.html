@@ -641,10 +641,10 @@ const SALESMEN = [
   {name:"Rob Dicka",          loc:'hazel'},
   {name:"Dan Schopp",         loc:'elkhorn'},
   {name:"Josh Macara",        loc:'elkhorn'},
-  {name:"Joe Weigert",        loc:'elkhorn'},
+  {name:"Joe Wiegert",        loc:'elkhorn'},
   {name:"Timothy Travis",     loc:'morris'},
   {name:"Jeremy Zinn",        loc:'elkhorn'},
-  {name:"Sam Blais",          loc:'greenbay'},   // also covers Wausau — switch the location dropdown for a Wausau job
+  {name:"Sam Blaies",         loc:'greenbay'},   // also covers Wausau — switch the location dropdown for a Wausau job
   {name:"Adams Virtual Team", loc:null}          // no home branch — rep picks the customer's market
 ];
 function locByKey(k){ return LOCATIONS.find(l=>l.key===k) || LOCATIONS[0]; }
@@ -663,6 +663,7 @@ const S = {
   dealer:{name:ADAMS.name, phone:ADAMS.phone, web:ADAMS.web},
   // gas service check — existing appliance INPUT ratings in kBTU/hr
   gas:{furnace:100, wh:40, range:0, dryer:0, other:0, meter:250},
+  pipe:{mat:'iron', press:'low', len:60, fitPct:50, fitN:0, tee:false, exist:''},
   acs:[ {tons:3, lra:TON_TABLE[3].lra, soft:false, essential:false, managed:true, on:true} ],
   heat:'gas', heatKw:10, auxKw:5, auxManaged:true,
   pumps:[
@@ -972,6 +973,7 @@ function renderResults(){
   lastResults.forEach(r=> grid.appendChild(scenCard(r)));
   host.appendChild(grid);
   host.appendChild(gasCard(lastResults));
+  host.appendChild(pipeCard(lastResults));
   const note = document.createElement('div'); note.className='note';
   note.innerHTML = `${deratePct()>0?`<b style="color:#B45309">Site derate applied: −${deratePct()}%</b> — at ${fmt(S.elev)} ft and ${S.ambientF}°F, published ratings are reduced ${DERATE_PER_KFT*100}% per 1,000 ft and ${DERATE_PER_10F*100}% per 10°F above ${DERATE_BASE_F}°F. The RATED column shows output at this site; nameplate is beneath it.<br>`:''}<b>Standard inclusions</b> (counted automatically, no entry needed): general lighting &amp; receptacles at ${S.vaSqft} VA/sq ft, ${S.sac} kitchen small-appliance circuits, the NEC laundry circuit, and a garbage disposal. Uncheck any load in step 4 for the rare home without it.<br>
   Loading pills: <b>≤80%</b> comfortable · <b>80–90%</b> acceptable (90% target) · <b>90–93%</b> workable but flagged — verify the load list, step up if anything is uncertain · above 93% the unit is bumped up automatically, as is any unit whose start peak exceeds ${SURGE_FACTOR}× rating.
@@ -987,6 +989,138 @@ function sizingBasisKW(results){
   const fits = pickModels(r0.requiredKW, r0.runningKW, r0.peakKW, S.fuel, r0.shedGuardKW).filter(m=>m.rated);
   return fits.length ? fits.sort((a,b)=>a.rated-b.rated)[0].rated : Math.ceil(r0.requiredKW);
 }
+
+/* ================= GAS PIPE SIZING — salesman tool =================
+   Capacity tables are intentionally EMPTY until verified source documents
+   are loaded. Nothing here guesses a pipe size: with no table the card
+   reports demand and developed length and names the document needed.
+   To activate: fill PIPE_TABLES[material][pressure] and set status:'ready'.
+   Each block records its own source + edition, so a later code cycle is a
+   contained edit and the printed basis can cite exactly what it used.    */
+const NG_BTU_PER_CF = 1000;   // assumed heating value; tables are CFH, demand is BTU/hr
+const PIPE_TABLES = {
+  iron: {
+    label:'Black iron, Schedule 40', ready:true, fitModel:'pct',
+    source:'IFGC Table 402.4(2) / 402.4(5), as printed in the 2021 Seattle Fuel Gas Code. Natural gas, 0.60 specific gravity.',
+    low:{ label:'Less than 2 psi inlet, 0.5" WC drop', tbl:'402.4(2)', lengths:[10,20,30,40,50,60,70,80,90,100,125,150,175,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000], sizes:[
+          {name:'1/2"', cap:[172,118,95,81,72,65,60,56,52,50,44,40,37,34,30,27,25,23,22,21,20,19,18,17,17,16,16,15,15,14,14,13,12,12,11,11,11,10,10,0]},
+          {name:'3/4"', cap:[360,247,199,170,151,137,126,117,110,104,92,83,77,71,63,57,53,49,46,43,41,39,38,36,35,34,33,32,31,30,28,27,26,25,24,23,22,22,21,20]},
+          {name:'1"', cap:[678,466,374,320,284,257,237,220,207,195,173,157,144,134,119,108,99,92,86,82,78,74,71,68,66,63,61,59,58,56,53,51,49,47,45,44,42,41,40,39]},
+          {name:'1-1/4"', cap:[1390,957,768,657,583,528,486,452,424,400,355,322,296,275,244,221,203,189,177,168,159,152,145,140,135,130,126,122,118,115,109,104,100,96,93,89,86,84,81,79]},
+          {name:'1-1/2"', cap:[2090,1430,1150,985,873,791,728,677,635,600,532,482,443,412,366,331,305,283,266,251,239,228,218,209,202,195,189,183,178,173,164,156,150,144,139,134,130,126,122,119]},
+          {name:'2"', cap:[4020,2760,2220,1900,1680,1520,1400,1300,1220,1160,1020,928,854,794,704,638,587,546,512,484,459,438,420,403,389,375,363,352,342,333,316,301,289,277,267,258,250,242,235,229]},
+          {name:'2-1/2"', cap:[6400,4400,3530,3020,2680,2430,2230,2080,1950,1840,1630,1480,1360,1270,1120,1020,935,870,816,771,732,699,669,643,619,598,579,561,545,530,503,480,460,442,426,411,398,386,375,364]},
+          {name:'3"', cap:[11300,7780,6250,5350,4740,4290,3950,3670,3450,3260,2890,2610,2410,2240,1980,1800,1650,1540,1440,1360,1290,1240,1180,1140,1090,1060,1020,992,963,937,890,849,813,781,752,727,703,682,662,644]},
+          {name:'4"', cap:[23100,15900,12700,10900,9660,8760,8050,7490,7030,6640,5890,5330,4910,4560,4050,3670,3370,3140,2940,2780,2640,2520,2410,2320,2230,2160,2090,2020,1960,1910,1810,1730,1660,1590,1530,1480,1430,1390,1350,1310]},
+          {name:'5"', cap:[41800,28700,23000,19700,17500,15800,14600,13600,12700,12000,10600,9650,8880,8260,7320,6630,6100,5680,5330,5030,4780,4560,4360,4190,4040,3900,3780,3660,3550,3460,3280,3130,3000,2880,2780,2680,2590,2520,2440,2380]},
+          {name:'6"', cap:[67600,46500,37300,31900,28300,25600,23600,22000,20600,19500,17200,15600,14400,13400,11900,10700,9880,9190,8620,8150,7740,7380,7070,6790,6540,6320,6110,5930,5760,5600,5320,5070,4860,4670,4500,4340,4200,4070,3960,3850]},
+          {name:'8"', cap:[139000,95500,76700,65600,58200,52700,48500,45100,42300,40000,35400,32100,29500,27500,24300,22100,20300,18900,17700,16700,15900,15200,14500,14000,13400,13000,12600,12200,11800,11500,10900,10400,9980,9590,9240,8920,8630,8370,8130,7910]},
+          {name:'10"', cap:[252000,173000,139000,119000,106000,95700,88100,81900,76900,72600,64300,58300,53600,49900,44200,40100,36900,34300,32200,30400,28900,27500,26400,25300,24400,23600,22800,22100,21500,20900,19800,18900,18100,17400,16800,16200,15700,15200,14800,14400]},
+          {name:'12"', cap:[399000,275000,220000,189000,167000,152000,139000,130000,122000,115000,102000,92300,84900,79000,70000,63400,58400,54300,50900,48100,45700,43600,41800,40100,38600,37300,36100,35000,34000,33100,31400,30000,28700,27600,26600,25600,24800,24100,23400,22700]} ] },
+    two:{ label:'2.0 psi inlet, 1.0 psi drop', tbl:'402.4(5)', lengths:[10,20,30,40,50,60,70,80,90,100,125,150,175,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000], sizes:[
+          {name:'1/2"', cap:[1510,1070,869,753,673,615,569,532,502,462,414,372,344,318,279,253,232,216,203,192,182,174,166,160,154,149,144,139,135,132,125,119,114,110,106,102,99,96,93,91]},
+          {name:'3/4"', cap:[3040,2150,1760,1520,1360,1240,1150,1080,1010,934,836,751,695,642,583,528,486,452,424,401,381,363,348,334,322,311,301,292,283,275,262,250,239,230,221,214,207,200,195,189]},
+          {name:'1"', cap:[5560,3930,3210,2780,2490,2270,2100,1970,1850,1710,1530,1370,1270,1170,1040,945,869,809,759,717,681,650,622,598,576,556,538,522,507,493,468,446,427,411,396,382,370,358,348,339]},
+          {name:'1-1/4"', cap:[11400,8070,6590,5710,5110,4660,4320,4040,3810,3510,3140,2820,2601,2410,2140,1940,1790,1660,1560,1470,1400,1330,1280,1230,1180,1140,1100,1070,1040,1010,960,917,878,843,812,784,759,736,715,695]},
+          {name:'1-1/2"', cap:[17100,12100,9880,8550,7650,6980,6470,6050,5700,5260,4700,4220,3910,3610,3210,2910,2670,2490,2330,2210,2090,2000,1910,1840,1770,1710,1650,1600,1560,1520,1440,1370,1320,1260,1220,1180,1140,1100,1070,1040]},
+          {name:'2"', cap:[32900,23300,19000,16500,14700,13500,12500,11700,11000,10100,9060,8130,7530,6960,6180,5600,5150,4790,4500,4250,4030,3850,3680,3540,3410,3290,3190,3090,3000,2920,2770,2640,2530,2430,2340,2260,2190,2120,2060,2010]},
+          {name:'2-1/2"', cap:[52500,37100,30300,26300,23500,21400,19900,18600,17500,16100,14400,13000,12000,11100,9850,8920,8210,7640,7170,6770,6430,6130,5870,5640,5440,5250,5080,4930,4780,4650,4420,4220,4040,3880,3740,3610,3490,3390,3290,3200]},
+          {name:'3"', cap:[92800,65600,53600,46400,41500,37900,35100,32800,30900,28500,25500,22900,21200,19600,17400,15800,14500,13500,12700,12000,11400,10800,10400,9970,9610,9280,8980,8710,8460,8220,7810,7450,7140,6860,6600,6380,6170,5980,5810,5650]},
+          {name:'4"', cap:[189000,134000,109000,94700,84700,77300,71600,67000,63100,58200,52100,46700,43300,40000,35500,32200,29600,27500,25800,24400,23200,22100,21200,20300,19600,18900,18300,17800,17200,16800,15900,15200,14600,14000,13500,13000,12600,12200,11900,11500]} ] }
+  },
+  csst: {
+    label:'Gastite / FlashShield CSST', ready:true, fitModel:'count', fitAdd:1.3,
+    fitBaked:'four 90\u00b0 bends and two end fittings',
+    source:'Gastite/FlashShield Design & Installation Guide, Section 7 (Jan 2013), Tables 7-1 and 7-10. CFH at 0.60 specific gravity.',
+    low:{ label:'0.5 psi or less, 0.5" WC drop', tbl:'7-1', lengths:[5,10,15,20,25,30,40,50,60,70,80,90,100,125,150,200,250,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500], sizes:[
+          {name:'3/8" (EHD 13)', cap:[47,32,26,22,20,18,15,14,13,12,11,10,10,8,8,7,6,5,5,4,4,3,3,3,3,3,3,2,2,2]},
+          {name:'1/2" (EHD 18)', cap:[131,93,76,66,59,54,47,42,38,36,33,32,30,27,24,21,19,17,15,14,12,11,11,10,10,9,9,8,8,8]},
+          {name:'3/4" (EHD 23)', cap:[251,183,152,133,120,110,97,87,80,75,70,67,63,57,53,46,42,38,34,30,28,26,24,23,22,21,20,20,19,18]},
+          {name:'1" (EHD 31)', cap:[578,415,341,297,267,244,213,191,175,163,153,144,137,123,113,98,88,81,70,63,58,54,50,48,45,43,42,40,39,37]},
+          {name:'1-1/4" (EHD 37)', cap:[871,620,508,441,396,362,314,282,258,239,224,211,201,180,164,143,128,117,102,91,83,77,72,68,65,62,59,57,55,53]},
+          {name:'1-1/2" (EHD 47)', cap:[1834,1304,1068,926,830,759,658,590,539,500,468,442,419,376,343,298,267,244,212,190,173,161,150,142,135,129,123,118,114,110]},
+          {name:'2" (EHD 60)', cap:[3874,2711,2199,1896,1690,1539,1327,1183,1077,994,928,874,827,737,671,579,516,470,405,361,329,304,283,267,253,240,230,221,212,205]} ] },
+    two:{ label:'2.0 psi inlet, 1.0 psi drop', tbl:'7-10',
+          caution:'Capacity at 2 psi can exceed the line regulator\u2019s own capacity \u2014 check the regulator, not just the tube.', lengths:[5,10,15,20,25,30,40,50,60,70,80,90,100,125,150,200,250,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500], sizes:[
+          {name:'3/8" (EHD 13)', cap:[392,271,219,188,167,152,130,116,105,97,90,85,80,71,65,56,49,45,39,34,31,29,27,25,24,23,22,21,20,19]},
+          {name:'1/2" (EHD 18)', cap:[957,679,556,483,432,395,343,307,281,260,243,230,218,195,179,155,139,127,110,99,90,83,78,74,70,67,64,62,59,57]},
+          {name:'3/4" (EHD 23)', cap:[1596,1161,964,844,762,701,614,554,510,475,447,423,403,364,335,293,265,243,213,193,177,165,155,147,140,134,129,124,120,116]},
+          {name:'1" (EHD 31)', cap:[4004,2869,2361,2056,1847,1692,1474,1324,1213,1126,1056,998,949,852,781,680,611,560,487,438,401,372,349,330,314,300,287,277,267,258]},
+          {name:'1-1/4" (EHD 37)', cap:[6269,4463,3658,3177,2848,2604,2262,2027,1854,1719,1610,1520,1443,1294,1183,1027,921,842,731,656,600,556,521,491,467,445,427,410,396,383]},
+          {name:'1-1/2" (EHD 47)', cap:[13331,9474,7758,6733,6032,5514,4785,4287,3918,3632,3401,3209,3047,2729,2495,2165,1940,1773,1539,1379,1260,1168,1094,1032,980,935,896,861,830,802]},
+          {name:'2" (EHD 60)', cap:[30841,21577,17508,15096,13456,12249,10561,9414,8570,7915,7389,6954,6586,5871,5344,4608,4107,3739,3224,2874,2616,2416,2255,2123,2010,1914,1830,1756,1690,1631]} ] }
+  },
+  pe: {
+    label:'Polyethylene, underground', ready:true, fitModel:'pct',
+    source:'IFGC Table 402.4(21) / 402.4(22), as printed in the 2021 Seattle Fuel Gas Code. Natural gas, 0.60 specific gravity.',
+    low:{ label:'Less than 2 psi inlet, 0.5" WC drop', tbl:'402.4(21)', lengths:[10,20,30,40,50,60,70,80,90,100,125,150,175,200,250,300,350,400,450,500], sizes:[
+          {name:'1/2" SDR 9', cap:[201,138,111,95,84,76,70,65,61,58,51,46,43,40,35,32,29,27,26,24]},
+          {name:'3/4" SDR 11', cap:[403,277,222,190,169,153,140,131,123,116,103,93,86,80,71,64,59,55,51,48]},
+          {name:'1" SDR 11', cap:[726,499,401,343,304,276,254,236,221,209,185,168,154,144,127,115,106,99,93,88]},
+          {name:'1-1/4" SDR 10', cap:[1260,865,695,594,527,477,439,409,383,362,321,291,268,249,221,200,184,171,160,152]},
+          {name:'1-1/2" SDR 11', cap:[1900,1310,1050,898,796,721,663,617,579,547,485,439,404,376,333,302,278,258,242,229]},
+          {name:'2" SDR 11', cap:[3410,2350,1880,1610,1430,1300,1190,1110,1040,983,871,789,726,675,598,542,499,464,435,411]},
+          {name:'3" SDR 11', cap:[9450,6490,5210,4460,3950,3580,3300,3070,2880,2720,2410,2180,2010,1870,1660,1500,1380,1280,1200,1140]},
+          {name:'4" SDR 11', cap:[18260,12550,10080,8630,7640,6930,6370,5930,5560,5250,4660,4220,3880,3610,3200,2900,2670,2480,2330,2200]} ] },
+    two:{ label:'2.0 psi inlet, 1.0 psi drop', tbl:'402.4(22)', lengths:[10,20,30,40,50,60,70,80,90,100,125,150,175,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000], sizes:[
+          {name:'1/2" SDR 9', cap:[1860,1280,1030,878,778,705,649,603,566,535,474,429,395,368,326,295,272,253,237,224,213,203,194,187,180,174,168,163,158,154,146,139,134,128,124,119,115,112,109,106]},
+          {name:'3/4" SDR 11', cap:[3720,2560,2050,1760,1560,1410,1300,1210,1130,1070,949,860,791,736,652,591,544,506,475,448,426,406,389,374,360,348,336,326,317,308,293,279,267,257,247,239,231,224,218,212]},
+          {name:'1" SDR 11', cap:[6710,4610,3710,3170,2810,2550,2340,2180,2050,1930,1710,1550,1430,1330,1180,1070,981,913,856,809,768,733,702,674,649,627,607,588,572,556,528,504,482,463,446,431,417,404,393,382]},
+          {name:'1-1/4" SDR 10', cap:[11600,7990,6420,5490,4870,4410,4060,3780,3540,3350,2970,2690,2470,2300,2040,1850,1700,1580,1480,1400,1330,1270,1220,1170,1130,1090,1050,1020,990,963,915,873,836,803,773,747,723,701,680,662]},
+          {name:'1-1/2" SDR 11', cap:[17600,12100,9690,8300,7350,6660,6130,5700,5350,5050,4480,4060,3730,3470,3080,2790,2570,2390,2240,2120,2010,1920,1840,1760,1700,1640,1590,1540,1500,1450,1380,1320,1260,1210,1170,1130,1090,1060,1030,1000]},
+          {name:'2" SDR 11', cap:[31600,21700,17400,14900,13200,12000,11000,10200,9610,9080,8050,7290,6710,6240,5530,5010,4610,4290,4020,3800,3610,3440,3300,3170,3050,2950,2850,2770,2690,2610,2480,2370,2270,2180,2100,2030,1960,1900,1850,1800]},
+          {name:'3" SDR 11', cap:[87300,60000,48200,41200,36600,33100,30500,28300,26600,25100,22300,20200,18600,17300,15300,13900,12800,11900,11100,10500,9990,9530,9130,8770,8450,8160,7890,7650,7430,7230,6870,6550,6270,6030,5810,5610,5430,5260,5110,4970]},
+          {name:'4" SDR 11', cap:[169000,116000,93200,79700,70700,64000,58900,54800,51400,48600,43000,39000,35900,33400,29600,26800,24700,22900,21500,20300,19300,18400,17600,16900,16300,15800,15300,14800,14400,14000,13300,12700,12100,11600,11200,10800,10500,10200,9900,9600]} ] }
+  }
+};
+const PIPE_MATS  = [['iron','Black iron (Sch 40)'],['csst','Gastite / FlashShield CSST'],['pe','PE (underground)']];
+function pipePressOpts(){
+  const lowLbl = S.fuel==='LP' ? '11" WC low pressure (0.5" WC drop)' : '7" WC low pressure (0.5" WC drop)';
+  return [['low',lowLbl],['two','2 psi + regulator at unit (1 psi drop)']];
+}
+
+function locState(){ return /,\s*IL\b/.test(locByKey(S.locKey).name) ? 'IL' : 'WI'; }
+function codeBasis(){
+  return locState()==='IL'
+    ? { code:'NFPA 54 (National Fuel Gas Code)', note:'Illinois — local adoption governs. Confirm the edition Morris enforces.' }
+    : { code:'IFGC as adopted in Wisconsin', note:'One- and two-family dwellings fall under the Uniform Dwelling Code (SPS 320–325); SPS 361–366 is the commercial path. Confirm which your inspector cites, and the edition your master plumber sizes from.' };
+}
+function developedLen(){
+  const m = Math.max(0, +S.pipe.len||0);
+  const tbl = PIPE_TABLES[S.pipe.mat] || {};
+  if (tbl.fitModel === 'count'){
+    // Gastite tables already carry four 90s + two end fittings; each EXTRA one adds 1.3 ft (L = 1.3n)
+    const n = Math.max(0, +S.pipe.fitN||0);
+    return { measured:m, model:'count', n, add:+(n*tbl.fitAdd).toFixed(1),
+             total: Math.round(m + n*tbl.fitAdd), baked: tbl.fitBaked };
+  }
+  const f = Math.max(0, +S.pipe.fitPct||0);
+  return { measured:m, model:'pct', pct:f, total: Math.round(m*(1+f/100)) };
+}
+function pipeDemand(results){
+  const kw = sizingBasisKW(results);
+  const gen = Math.round(fuelDraw(kw).btu/1000);
+  const t = gasTotals(kw);
+  return { kw, gen, appl:Math.round(t.appl), teeTotal:Math.round(t.total) };
+}
+function sizePipe(demandK, devLenFt, mat, press){
+  const tbl = PIPE_TABLES[mat];
+  if (!tbl || !tbl.ready || !tbl[press]) return { status:'pending', need: tbl ? tbl.label : mat };
+  const grid = tbl[press];
+  const wantCFH = (demandK*1000)/NG_BTU_PER_CF;          // tables are CFH
+  // next tabulated length at or beyond the developed length (never interpolate down)
+  const row = grid.lengths.find(L=>L>=devLenFt);
+  if (row === undefined) return { status:'toolong', max: grid.lengths[grid.lengths.length-1] };
+  const i = grid.lengths.indexOf(row);
+  for (const col of grid.sizes){
+    const cap = col.cap[i];
+    if (cap && cap >= wantCFH)
+      return { status:'ok', size:col.name, capCFH:cap, capK:Math.round(cap*NG_BTU_PER_CF/1000),
+               atLen:row, basis:grid.label, tbl:grid.tbl, caution:grid.caution||null, source:tbl.source };
+  }
+  return { status:'over', need:tbl.label, atLen:row };
+}
+
 function gasTotals(kw){
   const g = S.gas;
   const genBTU = fuelDraw(kw).btu/1000; // kBTU/hr
@@ -1027,6 +1161,77 @@ function gasCard(results){
   bind('gFurnace','furnace');bind('gWh','wh');bind('gRange','range');bind('gDryer','dryer');bind('gOther','other');bind('gMeter','meter');
   return card;
 }
+
+
+/* ---------- gas pipe sizing card (salesman only; never reaches #printSheet) ---------- */
+function pipeCard(results){
+  const P = S.pipe, cb = codeBasis(), d = pipeDemand(results), L = developedLen();
+  const carried = P.tee ? d.teeTotal : d.gen;
+  const res = sizePipe(carried, L.total, P.mat, P.press);
+  const card = document.createElement('div'); card.className='card'; card.style.marginTop='14px';
+
+  const answer =
+    res.status==='ok'
+    ? `<div style="background:#f0f7ef;border:1px solid #9ec89a;border-radius:8px;padding:10px 13px">
+         <div style="font-size:16px"><b style="color:var(--navy);font-size:20px">${res.size}</b> minimum</div>
+         <div style="font-size:12px;color:#333;margin-top:3px">Carries ${fmt(res.capCFH)} CFH (≈${fmt(res.capK)}k BTU/hr) at the ${res.atLen} ft row — your run is ${L.total} ft.</div>
+         <div style="font-size:10.5px;color:var(--ink-3);margin-top:4px">${res.basis} · Table ${res.tbl} · ${res.source}</div>
+         ${res.caution?`<div style="font-size:11px;color:#b45309;margin-top:5px"><b>Check the regulator.</b> ${res.caution}</div>`:''}
+       </div>`
+    : res.status==='over'
+    ? `<div style="font-size:14px;color:#b45309"><b>Past the largest tube in the ${res.need} table at ${res.atLen} ft.</b>
+         Shorten the run, step up to 2 psi with a regulator, or hand it to the installer to size in iron.</div>`
+    : res.status==='toolong'
+    ? `<div style="font-size:14px;color:#b45309"><b>Run exceeds the ${fmt(res.max)} ft table limit.</b> Installer sizes this one.</div>`
+    : `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:9px 12px;font-size:13px">
+         <b style="color:#b45309">No verified table for ${res.need} yet.</b><br>
+         Everything above is computed and correct — only the lookup is missing. Send the capacity pages your
+         master plumber sizes from for <b>${cb.code}</b> and this switches on.
+         <span style="color:var(--ink-3)">A size is withheld rather than guessed.</span></div>`;
+
+  const flags = [];
+  if (P.mat==='csst') flags.push('<b>Bond the CSST</b> per NFPA 54 &sect;7.13. It is among the most frequently cited deficiencies in Illinois gas inspections — do not let it be a callback.');
+  if (locState()==='IL') flags.push('<b>Illinois job.</b> Gas piping must be installed by a licensed plumber. Confirm Adams holds that license before committing the gas side in-house.');
+  if (P.tee) flags.push(`<b>Teed into an existing line.</b> That run now has to carry the generator <i>and</i> everything already on it — <b>${fmt(d.teeTotal)}k BTU/hr</b>, not just the ${fmt(d.gen)}k the generator draws. Existing pipe is sized for the old load. Have the installer verify the run back to the meter before this is quoted.`);
+
+  card.innerHTML = `<h2>Gas pipe sizing
+      <span class="pill" style="vertical-align:2px;background:#eef2f7;color:#0f3260">field estimate</span></h2>
+    <div class="hint">Sizes the run from the meter to the generator. Salesman tool &mdash; this never appears on the customer summary.
+      Basis: <b>${cb.code}</b>. ${cb.note}</div>
+    <div class="grid g3">
+      <label class="f">Pipe material<select id="pMat">${PIPE_MATS.map(([v,n])=>`<option value="${v}"${P.mat===v?' selected':''}>${n}</option>`).join('')}</select></label>
+      <label class="f">System pressure<select id="pPress">${pipePressOpts().map(([v,n])=>`<option value="${v}"${P.press===v?' selected':''}>${n}</option>`).join('')}</select></label>
+      <label class="f">Connection<select id="pTee"><option value="0"${!P.tee?' selected':''}>Dedicated run from meter</option><option value="1"${P.tee?' selected':''}>Tee into existing line</option></select></label>
+      <label class="f">Measured run (ft)<input type="number" id="pLen" value="${P.len}" min="0" step="5"></label>
+      ${L.model==='count'
+        ? `<label class="f">Extra bends / fittings<input type="number" id="pFitN" value="${P.fitN}" min="0" step="1">
+             <span class="sub" style="font-size:10.5px;color:var(--ink-3)">beyond the ${L.baked} already in the table</span></label>`
+        : `<label class="f">Fittings allowance (%)<input type="number" id="pFit" value="${P.fitPct}" min="0" max="200" step="5">
+             <span class="sub" style="font-size:10.5px;color:var(--ink-3)">shop rule of thumb — the code method is equivalent length per fitting</span></label>`}
+      <label class="f">Existing line size${P.tee?'':' (n/a)'}<input type="text" id="pExist" value="${P.exist||''}" placeholder="e.g. 3/4 in" ${P.tee?'':'disabled'}></label>
+    </div>
+    <div style="margin-top:12px;font-size:13px;line-height:1.7">
+      Generator (${d.kw} kW @ full load): <b>${fmt(d.gen)}k BTU/hr</b>${P.tee?` &nbsp;+&nbsp; existing appliances <b>${fmt(d.appl)}k</b>`:''}
+      &nbsp;&rarr;&nbsp; this run carries <b>${fmt(carried)}k BTU/hr</b><br>
+      Developed length: <b>${L.total} ft</b> <span style="color:var(--ink-3)">${L.model==='count'
+        ? `(${L.measured} ft measured${L.n?` + ${L.add} ft for ${L.n} extra fitting${L.n>1?'s':''} at 1.3 ft each`:''})`
+        : `(${L.measured} ft measured + ${L.pct}% fittings)`}</span>
+    </div>
+    <div style="margin-top:10px">${answer}</div>
+    ${flags.length?`<div class="note" style="margin-top:10px">${flags.join('<br><br>')}</div>`:''}
+    <div style="margin-top:9px;font-size:11px;color:var(--ink-3)">Field estimate for quoting. The installing licensed tradesman verifies and signs off before permit.</div>`;
+
+  const S_ = (id,fn)=>{const e=card.querySelector('#'+id); if(e) e.addEventListener('change',ev=>{fn(ev.target.value);savePipePrefs();renderResults();});};
+  S_('pMat', v=>S.pipe.mat=v);
+  S_('pPress', v=>S.pipe.press=v);
+  S_('pTee', v=>S.pipe.tee = v==='1');
+  S_('pLen', v=>S.pipe.len=+v||0);
+  S_('pFit', v=>S.pipe.fitPct=+v||0);
+  S_('pFitN', v=>S.pipe.fitN=Math.max(0,+v||0));
+  S_('pExist', v=>S.pipe.exist=v);
+  return card;
+}
+function savePipePrefs(){ saveDealer(); }
 
 /* ---------- print ---------- */
 
@@ -1583,7 +1788,8 @@ const store = {
   set(v){ try{ localStorage.setItem('adamsSizer', JSON.stringify(v)); }catch(e){} }
 };
 function saveDealer(){
-  store.set({ brandSel:S.brandSel, noOem:S.noOem, meter:S.gas.meter, mgmtMode:S.mgmtMode, cust:S.cust, defaults:S.defaults });
+  store.set({ brandSel:S.brandSel, noOem:S.noOem, meter:S.gas.meter, mgmtMode:S.mgmtMode, cust:S.cust, defaults:S.defaults,
+             pipeDefaults:{mat:S.pipe.mat, press:S.pipe.press, fitPct:S.pipe.fitPct} });  // fitN is per-job
 }
 function loadDealer(){
   const v = store.get(); if(!v) return;
@@ -1600,6 +1806,8 @@ function loadDealer(){
     S.locKey = v.locKey;
     $('jElev').value = locByKey(v.locKey).elev; S.elevSource = 'location';
   }
+  if (v.pipeDefaults) Object.assign(S.pipe, v.pipeDefaults);   // shop defaults only
+  S.pipe.len = 60; S.pipe.tee = false; S.pipe.exist = ''; S.pipe.fitN = 0;   // per-job, never carried over
   if (v.cust) { S.cust = Object.assign(S.cust, v.cust);
     S.cust.pick = null;   // per-job choice; must not carry over to the next customer
     document.querySelectorAll('.custScen').forEach(cb=>cb.checked = !!S.cust.scen[cb.value]);
